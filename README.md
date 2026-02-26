@@ -16,7 +16,7 @@ Longview ingests your medical documents (lab reports, imaging results, pathology
 - **Structured extraction** -- typed medical results (labs, imaging, pathology, diagnostics) with units, reference ranges, dates
 - **Validation gate** -- every extraction is validated before entering trusted storage
 - **Full-text search** -- FTS5-powered search across all documents in a vault
-- **Result trends** -- query and chart test/finding values over time, export to markdown
+- **Result trends** -- query and chart test/finding values over time, export to PDF with source document links
 - **Review queue** -- flag and manually correct uncertain extractions
 
 ## CLI Usage
@@ -27,7 +27,7 @@ longview rescan <vault>
 longview search <vault> <query>
 longview results <vault> [--test <name>]
 longview trend <vault> <test>
-longview export <vault> [--format md]
+longview export <vault> [--format pdf]
 longview review <vault>
 ```
 

@@ -165,13 +165,16 @@
 - [ ] `storage/results_store.py` -- query results by test/finding name, category, date range
 - [ ] `trends/engine.py` -- chronological aggregation, delta calculation
 - [ ] `trends/formatters.py` -- table and ASCII chart output for terminal
-- [ ] `trends/export.py` -- export trends to markdown file (human-readable longitudinal record)
+- [ ] `trends/export.py` -- export trends to PDF with:
+  - Each result hyperlinked to its source document
+  - Parser provenance shown per result (which parser + extractor produced it)
+  - Grouped by category (lab, imaging, pathology, etc.)
 - [ ] `cli/results.py` -- `longview results <vault> [--test <name>] [--category <cat>]`
 - [ ] `cli/trend.py` -- `longview trend <vault> <test>`
-- [ ] `cli/export.py` -- `longview export <vault> [--format md]`
+- [ ] `cli/export.py` -- `longview export <vault> [--format pdf]`
 - [ ] Integration test: multiple documents -> extract -> trend output + export
 
-**Deliverable:** `longview results <vault>` shows all results across categories. `longview trend <vault> "HDL"` shows history. `longview export <vault>` produces a portable markdown trends document.
+**Deliverable:** `longview results <vault>` shows all results across categories. `longview trend <vault> "HDL"` shows history. `longview export <vault>` produces a PDF trends report where each result links to its source document.
 
 ---
 
