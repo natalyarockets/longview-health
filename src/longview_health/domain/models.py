@@ -1,0 +1,145 @@
+"""Domain models -- the typed core of the system.
+
+All domain types are immutable. They flow through the pipeline but are never
+mutated in place. New instances are created at each stage boundary.
+"""
+
+from __future__ import annotations
+
+from datetime import date, datetime
+
+from pydantic import BaseModel, Field
+
+from longview_health.domain.enums import (
+    Confidence,
+    DocumentType,
+    ResultCategory,
+    ValidationStatus,
+)
+
+
+# ---------------------------------------------------------------------------
+# Vault
+# ---------------------------------------------------------------------------
+
+
+class Vault(BaseModel, frozen=True):
+    """A vault represents one person's medical document collection."""
+
+    name: str
+    created_at: datetime
+
+
+# ---------------------------------------------------------------------------
+# Document
+# ---------------------------------------------------------------------------
+
+
+class Document(BaseModel, frozen=True):
+    """A source document ingested into a vault."""
+
+    id: str = Field(description="Content hash (SHA-256) of the file.")
+    vault_name: str
+    filename: str
+    file_path: str
+    document_type: DocumentType
+    content_hash: str
+    ingested_at: datetime
+    page_count: int | None = None
+
+
+# ---------------------------------------------------------------------------
+# Parsed document (output of parsing stage)
+# ---------------------------------------------------------------------------
+
+
+class ParsedTable(BaseModel, frozen=True):
+    """A table extracted from a document."""
+
+    headers: list[str]
+    rows: list[list[str]]
+    page: int | None = None
+
+
+class ParsedDocument(BaseModel, frozen=True):
+    """Output of the document parsing stage.
+
+    Contains raw text blocks and any tables found.
+    This is the input to structured extraction.
+    """
+
+    document_id: str
+    text_blocks: list[str]
+    tables: list[ParsedTable]
+    parser_used: str
+    page_count: int | None = None
+    warnings: list[str] = Field(default_factory=list)
+
+
+# ---------------------------------------------------------------------------
+# Medical results (output of extraction stage)
+# ---------------------------------------------------------------------------
+
+
+class ResultValue(BaseModel, frozen=True):
+    """A single value within a medical result.
+
+    Examples:
+    - Lab: value=145, unit="mg/dL", reference_low=100, reference_high=199
+    - Imaging: value="No acute findings", unit=None (narrative)
+    - Vitals: value=120, unit="mmHg"
+    """
+
+    value: str = Field(description="The extracted value, always stored as string for uniformity.")
+    unit: str | None = None
+    reference_low: str | None = None
+    reference_high: str | None = None
+    is_abnormal: bool | None = None
+
+
+class MedicalResult(BaseModel, frozen=True):
+    """A single extracted medical result/finding from a document.
+
+    Covers labs, imaging findings, pathology, diagnostics, vitals, etc.
+    """
+
+    id: str = Field(description="Deterministic composite key.")
+    document_id: str
+    test_name: str
+    result_value: ResultValue
+    result_date: date
+    category: ResultCategory
+    extractor_version: str
+    confidence: Confidence
+    validation_status: ValidationStatus = ValidationStatus.PENDING
+    notes: str | None = None
+
+
+# ---------------------------------------------------------------------------
+# Validation
+# ---------------------------------------------------------------------------
+
+
+class ValidationResult(BaseModel, frozen=True):
+    """Output of the validation engine for a single result."""
+
+    result_id: str
+    status: ValidationStatus
+    issues: list[str] = Field(default_factory=list)
+    adjusted_confidence: Confidence | None = None
+
+
+# ---------------------------------------------------------------------------
+# Review queue
+# ---------------------------------------------------------------------------
+
+
+class ReviewItem(BaseModel, frozen=True):
+    """An item in the review queue for manual correction."""
+
+    id: str
+    result: MedicalResult
+    reason: str
+    created_at: datetime
+    resolved: bool = False
+    resolved_at: datetime | None = None
