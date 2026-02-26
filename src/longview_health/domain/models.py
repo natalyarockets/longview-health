@@ -64,11 +64,13 @@ class ParsedTable(BaseModel, frozen=True):
 class ParsedDocument(BaseModel, frozen=True):
     """Output of the document parsing stage.
 
-    Contains raw text blocks and any tables found.
-    This is the input to structured extraction.
+    Contains the full markdown representation of the document (primary),
+    plus structured text blocks and tables for direct access.
+    The markdown is what gets fed to the LLM for structured extraction.
     """
 
     document_id: str
+    markdown: str = Field(description="Full document as markdown (Docling export). Primary input for LLM extraction.")
     text_blocks: list[str]
     tables: list[ParsedTable]
     parser_used: str

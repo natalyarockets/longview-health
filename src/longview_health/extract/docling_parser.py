@@ -132,6 +132,9 @@ def parse(file_path: Path) -> ParsedDocument:
     tables = _extract_tables(result)
     page_count = result.document.num_pages()
 
+    # Markdown export -- the primary representation for LLM extraction
+    markdown = result.document.export_to_markdown()
+
     # Content hash of the source file serves as the document ID
     from longview_health.domain.identifiers import content_hash
 
@@ -139,6 +142,7 @@ def parse(file_path: Path) -> ParsedDocument:
 
     return ParsedDocument(
         document_id=doc_id,
+        markdown=markdown,
         text_blocks=text_blocks,
         tables=tables,
         parser_used="docling",

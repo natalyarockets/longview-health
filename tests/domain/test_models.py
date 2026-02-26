@@ -73,6 +73,7 @@ def test_parsed_document_with_tables() -> None:
     )
     parsed = ParsedDocument(
         document_id="doc1",
+        markdown="| Test | Result | Unit | Reference |\n|---|---|---|---|\n| HDL | 55 | mg/dL | 40-60 |",
         text_blocks=["Lab Results Report"],
         tables=[table],
         parser_used="docling",

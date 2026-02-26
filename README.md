@@ -6,14 +6,28 @@ Longview ingests your medical documents (lab reports, imaging results, pathology
 
 ## Status
 
-**Pre-implementation.** Architecture and planning phase.
+**Active development.** Core parsing and extraction pipeline working.
+
+## Extraction Pipeline
+
+```
+Document (PDF/image)
+  -> Docling        (layout-aware parsing, produces clean markdown with tables)
+  -> Local LLM      (schema-constrained extraction via Ollama)
+  -> MedicalResult   (typed Pydantic objects with full provenance)
+  -> Validation      (gate before trusted storage)
+  -> SQLite          (per-vault relational storage)
+```
+
+Docling handles the hard part (layout, tables, OCR) and produces markdown. A local LLM (via Ollama) reads the markdown and extracts structured results into our Pydantic schema. No regex, no brittle pattern matching. All processing runs locally -- no data leaves your machine.
 
 ## Features (MVP)
 
 - **Vault management** -- isolated per-person data stores backed by SQLite
 - **Document ingestion** -- PDF, PNG, JPG, TIFF with content-hash deduplication
-- **Smart parsing** -- Docling-powered layout/table extraction (required), with OCR and LLM fallbacks
-- **Structured extraction** -- typed medical results (labs, imaging, pathology, diagnostics) with units, reference ranges, dates
+- **Smart parsing** -- Docling-powered layout/table extraction to markdown
+- **LLM extraction** -- local LLM (Ollama) maps markdown to typed medical results
+- **Full provenance** -- every result tracks which parser and extractor produced it
 - **Validation gate** -- every extraction is validated before entering trusted storage
 - **Full-text search** -- FTS5-powered search across all documents in a vault
 - **Result trends** -- query and chart test/finding values over time, export to PDF with source document links
@@ -31,31 +45,18 @@ longview export <vault> [--format pdf]
 longview review <vault>
 ```
 
-## Architecture
-
-```
-CLI (Click)
-  -> VaultManager         (create/list/delete isolated vaults)
-  -> IngestionEngine      (discover, hash, deduplicate files)
-     -> DocumentParser    (Docling-first layout + table extraction)
-     -> StructuredExtractor (map parsed content to typed results)
-     -> ValidationEngine  (reject or flag bad extractions)
-  -> StorageLayer         (SQLite per vault, relational tables)
-  -> SearchIndex          (FTS5 full-text search)
-  -> TrendEngine          (chronological result/finding aggregation)
-  -> ReviewQueue          (manual correction for flagged items)
-```
-
 ## Tech Stack
 
 | Component | Technology |
 |-----------|------------|
 | Language | Python 3.11+ |
 | CLI | Click |
+| Document parsing | Docling (required) |
+| Structured extraction | Local LLM via Ollama (qwen2.5-vl, llama3.2-vision) |
 | Storage | SQLite (one DB per vault) |
 | Search | FTS5 |
-| Document parsing | Docling, pdfplumber, Tesseract |
 | Domain models | Pydantic v2 |
+| HTTP client | httpx (Ollama API) |
 | Testing | pytest |
 | Package management | uv |
 
@@ -67,7 +68,7 @@ src/longview_health/
   core/         # config, paths, contracts
   domain/       # typed models and schemas
   ingest/       # file discovery, hashing, orchestration
-  extract/      # document parsing + structured extraction
+  extract/      # Docling parser + LLM extractor
   validate/     # validation gate
   storage/      # SQLite persistence
   search/       # FTS5 indexing and query
@@ -91,7 +92,11 @@ uv sync
 uv run longview --help
 
 # run tests
-uv run pytest
+uv run python -m pytest
+
+# start Ollama for LLM extraction
+ollama serve
+ollama pull qwen2.5-vl:7b
 ```
 
 ## Design Principles
@@ -101,6 +106,6 @@ See [`CLAUDE.md`](CLAUDE.md) for the full set of architectural principles and sy
 - **Data flows downhill** -- linear pipeline, no sideways dependencies
 - **Contracts over conventions** -- typed interfaces at every module boundary
 - **Accuracy over automation** -- validation gate, review queue, manual override
-- **Determinism first** -- LLM/VLM only as a last resort for ambiguity
+- **Best tools first** -- Docling for parsing, LLM for semantic extraction, all local
 - **Design for reprocessing** -- content-hashed, versioned, idempotent
 - **Isolation by default** -- fully independent vaults, zero shared state

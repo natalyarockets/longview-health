@@ -30,8 +30,8 @@ shared domain type). Draw the data flow before writing the code.
 ```
 Document on disk
   -> FileEnumerator (discovers, hashes, deduplicates)
-  -> DocumentParser (extracts text + layout structure)
-  -> StructuredExtractor (maps structure to domain types)
+  -> Docling (layout-aware parsing -> clean markdown with tables)
+  -> Local LLM via Ollama (markdown -> schema-constrained MedicalResult JSON)
   -> ValidationEngine (rejects or flags bad extractions)
   -> StorageLayer (persists validated results)
   -> SearchIndex (indexes for retrieval)
@@ -55,19 +55,21 @@ Health data must be correct. Every extraction goes through a validation gate bef
 it's considered trusted. The system should make it easy to flag, review, and manually
 correct results. An unreviewed result is not a trusted result.
 
-### 5. Best Tools First, ML As Tiebreaker
+### 5. Best Tools First, No Brittle Heuristics
 
-The parsing pipeline uses the best available tool at each stage. Docling is a required
-dependency because it produces the most accurate layout/table extraction -- making it
-optional would undermine the accuracy-first principle. The pipeline order:
+The pipeline uses the best tool at each stage:
 
-1. Docling (layout-aware parsing, table extraction) -- primary parser
-2. Native PDF text extraction -- supplement/fallback for text-heavy documents
-3. OCR -- fallback for image-only documents or when Docling can't extract text
-4. LLM/VLM -- last resort for ambiguity resolution only, never the primary parser
+1. **Docling** (required) -- layout-aware parsing produces clean markdown with tables.
+   This is the hard part: understanding document structure, preserving table geometry,
+   handling multi-column layouts, OCR when needed.
+2. **Local LLM** (via Ollama) -- reads the markdown and extracts structured results.
+   The LLM handles semantic understanding: which values are test results, what the
+   reference ranges mean, whether something is a lab vs imaging finding.
+   Output is schema-constrained (Pydantic JSON) and validation-gated.
+3. **pdfplumber** -- fallback if Docling fails on a PDF.
 
-When an LLM is used, its output is schema-constrained and validation-gated. All tools
-run locally -- no data leaves the machine.
+No regex extractors. No header-guessing heuristics. Docling handles structure,
+the LLM handles meaning. All processing runs locally -- no data leaves the machine.
 
 ### 6. Design for Reprocessing
 

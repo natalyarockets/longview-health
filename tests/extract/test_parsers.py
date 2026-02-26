@@ -96,12 +96,14 @@ class TestParserChain:
         """Verify the quality check logic."""
         good = ParsedDocument(
             document_id="x",
+            markdown="This is a real lab report with content",
             text_blocks=["This is a real lab report with content"],
             tables=[],
             parser_used="test",
         )
         empty = ParsedDocument(
             document_id="x",
+            markdown="short",
             text_blocks=["short"],
             tables=[],
             parser_used="test",

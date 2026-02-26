@@ -55,8 +55,12 @@ def parse(file_path: Path) -> ParsedDocument:
 
     doc_id = content_hash(file_path)
 
+    # Combine text blocks into markdown (plain text, no table structure)
+    markdown = "\n\n".join(text_blocks)
+
     return ParsedDocument(
         document_id=doc_id,
+        markdown=markdown,
         text_blocks=text_blocks,
         tables=[],
         parser_used="pdfplumber",
