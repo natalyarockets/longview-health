@@ -55,6 +55,7 @@ def test_medical_result_roundtrip() -> None:
         ),
         result_date=date(2024, 3, 15),
         category=ResultCategory.LAB,
+        parser_used="docling",
         extractor_version="1.0.0",
         confidence=Confidence.HIGH,
     )

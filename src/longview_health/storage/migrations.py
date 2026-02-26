@@ -36,6 +36,7 @@ MIGRATIONS: list[tuple[int, str, str]] = [
             is_abnormal INTEGER,
             result_date TEXT NOT NULL,
             category TEXT NOT NULL,
+            parser_used TEXT NOT NULL DEFAULT 'unknown',
             extractor_version TEXT NOT NULL,
             confidence TEXT NOT NULL,
             validation_status TEXT NOT NULL DEFAULT 'pending',

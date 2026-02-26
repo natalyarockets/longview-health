@@ -109,6 +109,7 @@ class MedicalResult(BaseModel, frozen=True):
     result_value: ResultValue
     result_date: date
     category: ResultCategory
+    parser_used: str = Field(description="Which parser produced the source data (e.g. docling, pdfplumber).")
     extractor_version: str
     confidence: Confidence
     validation_status: ValidationStatus = ValidationStatus.PENDING

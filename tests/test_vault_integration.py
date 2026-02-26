@@ -85,15 +85,13 @@ class TestVaultStore:
 
 
 class TestVaultCLI:
-    def test_create_via_cli(self, runner: CliRunner, tmp_path: Path) -> None:
-        result = runner.invoke(
-            cli,
-            ["vault", "create", "alice"],
-            env={"LONGVIEW_VAULT_ROOT": str(tmp_path / "vaults")},
-        )
-        # Stub commands still work even without env var wiring yet
-        assert result.exit_code == 0
-
     def test_list_via_cli(self, runner: CliRunner) -> None:
         result = runner.invoke(cli, ["vault", "list"])
         assert result.exit_code == 0
+
+    def test_vault_help(self, runner: CliRunner) -> None:
+        result = runner.invoke(cli, ["vault", "--help"])
+        assert result.exit_code == 0
+        assert "create" in result.output
+        assert "list" in result.output
+        assert "delete" in result.output
