@@ -1,6 +1,6 @@
 """Tests for LLM-based structured extraction.
 
-Mocks the Ollama API call so tests run without a live server.
+Mocks the LLM dispatcher so tests run without a live model/server.
 Tests the full pipeline: markdown -> LLM response -> MedicalResult objects.
 """
 
@@ -93,9 +93,9 @@ class TestParseLLMResponse:
 
 
 class TestLLMExtraction:
-    @patch("longview_health.extract.llm_extractor._call_ollama")
-    def test_basic_extraction(self, mock_ollama: object) -> None:
-        mock_ollama.return_value = _make_ollama_response([  # type: ignore[attr-defined]
+    @patch("longview_health.extract.llm_extractor._call_llm")
+    def test_basic_extraction(self, mock_llm: object) -> None:
+        mock_llm.return_value = _make_ollama_response([  # type: ignore[attr-defined]
             {"test_name": "WBC", "value": "7.5", "unit": "K/uL",
              "reference_low": "4.5", "reference_high": "11.0",
              "is_abnormal": False, "category": "lab"},
@@ -120,9 +120,9 @@ class TestLLMExtraction:
         assert results[0].confidence == Confidence.MEDIUM
         assert results[0].validation_status == ValidationStatus.PENDING
 
-    @patch("longview_health.extract.llm_extractor._call_ollama")
-    def test_imaging_results(self, mock_ollama: object) -> None:
-        mock_ollama.return_value = _make_ollama_response([  # type: ignore[attr-defined]
+    @patch("longview_health.extract.llm_extractor._call_llm")
+    def test_imaging_results(self, mock_llm: object) -> None:
+        mock_llm.return_value = _make_ollama_response([  # type: ignore[attr-defined]
             {"test_name": "Lumbar spine alignment", "value": "Normal lordosis",
              "category": "imaging"},
             {"test_name": "Disc herniation", "value": "L4-L5 mild protrusion",
@@ -136,10 +136,10 @@ class TestLLMExtraction:
         assert results[0].category == ResultCategory.IMAGING
         assert results[1].result_value.is_abnormal is True
 
-    @patch("longview_health.extract.llm_extractor._call_ollama")
-    def test_date_from_document(self, mock_ollama: object) -> None:
+    @patch("longview_health.extract.llm_extractor._call_llm")
+    def test_date_from_document(self, mock_llm: object) -> None:
         """LLM-found date should be used over fallback."""
-        mock_ollama.return_value = _make_ollama_response(  # type: ignore[attr-defined]
+        mock_llm.return_value = _make_ollama_response(  # type: ignore[attr-defined]
             [{"test_name": "WBC", "value": "7.5", "category": "lab",
               "result_date": "2024-01-10"}],
             doc_date="2024-01-10",
@@ -150,9 +150,9 @@ class TestLLMExtraction:
 
         assert results[0].result_date == date(2024, 1, 10)
 
-    @patch("longview_health.extract.llm_extractor._call_ollama")
-    def test_fallback_date_used_when_no_date_found(self, mock_ollama: object) -> None:
-        mock_ollama.return_value = _make_ollama_response(  # type: ignore[attr-defined]
+    @patch("longview_health.extract.llm_extractor._call_llm")
+    def test_fallback_date_used_when_no_date_found(self, mock_llm: object) -> None:
+        mock_llm.return_value = _make_ollama_response(  # type: ignore[attr-defined]
             [{"test_name": "WBC", "value": "7.5", "category": "lab"}],
             doc_date=None,
         )
@@ -163,8 +163,8 @@ class TestLLMExtraction:
 
         assert results[0].result_date == fallback
 
-    @patch("longview_health.extract.llm_extractor._call_ollama")
-    def test_empty_markdown_returns_empty(self, mock_ollama: object) -> None:
+    @patch("longview_health.extract.llm_extractor._call_llm")
+    def test_empty_markdown_returns_empty(self, mock_llm: object) -> None:
         parsed = ParsedDocument(
             document_id="empty",
             markdown="",
@@ -175,20 +175,20 @@ class TestLLMExtraction:
 
         results = llm_extractor.extract(parsed, fallback_date=date(2024, 1, 1))
         assert results == []
-        mock_ollama.assert_not_called()  # type: ignore[attr-defined]
+        mock_llm.assert_not_called()  # type: ignore[attr-defined]
 
-    @patch("longview_health.extract.llm_extractor._call_ollama")
-    def test_bad_json_returns_empty(self, mock_ollama: object) -> None:
-        mock_ollama.return_value = "not valid json at all"  # type: ignore[attr-defined]
+    @patch("longview_health.extract.llm_extractor._call_llm")
+    def test_bad_json_returns_empty(self, mock_llm: object) -> None:
+        mock_llm.return_value = "not valid json at all"  # type: ignore[attr-defined]
 
         parsed = _make_parsed_doc()
         results = llm_extractor.extract(parsed, fallback_date=date(2024, 1, 1))
 
         assert results == []
 
-    @patch("longview_health.extract.llm_extractor._call_ollama")
-    def test_provenance_tracked(self, mock_ollama: object) -> None:
-        mock_ollama.return_value = _make_ollama_response([  # type: ignore[attr-defined]
+    @patch("longview_health.extract.llm_extractor._call_llm")
+    def test_provenance_tracked(self, mock_llm: object) -> None:
+        mock_llm.return_value = _make_ollama_response([  # type: ignore[attr-defined]
             {"test_name": "WBC", "value": "7.5", "category": "lab"},
         ])
 
@@ -204,9 +204,9 @@ class TestLLMExtraction:
         assert results[0].parser_used == "pdfplumber"
         assert results[0].extractor_version == "llm-v1"
 
-    @patch("longview_health.extract.llm_extractor._call_ollama")
-    def test_multiple_categories(self, mock_ollama: object) -> None:
-        mock_ollama.return_value = _make_ollama_response([  # type: ignore[attr-defined]
+    @patch("longview_health.extract.llm_extractor._call_llm")
+    def test_multiple_categories(self, mock_llm: object) -> None:
+        mock_llm.return_value = _make_ollama_response([  # type: ignore[attr-defined]
             {"test_name": "WBC", "value": "7.5", "category": "lab"},
             {"test_name": "Blood Pressure", "value": "120/80", "unit": "mmHg", "category": "vitals"},
             {"test_name": "Tumor size", "value": "2.3", "unit": "cm", "category": "pathology"},

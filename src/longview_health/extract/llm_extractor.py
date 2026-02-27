@@ -1,11 +1,15 @@
 """LLM-based structured extractor.
 
-Takes the markdown output from Docling and uses a local LLM (via Ollama)
+Takes the markdown output from Docling and uses a local LLM (via Ollama or MLX)
 to extract structured medical results. The LLM output is schema-constrained
 to our Pydantic types and validation-gated before entering trusted storage.
 
 This is the primary extraction method. Docling handles layout/structure,
 the LLM handles semantic understanding of what the content means.
+
+Two backends are supported:
+- "mlx" (default): Uses mlx-lm on Apple Silicon. No external server needed.
+- "ollama": Uses a local Ollama server. Requires `ollama serve` running.
 """
 
 from __future__ import annotations
@@ -26,6 +30,7 @@ logger = logging.getLogger(__name__)
 EXTRACTOR_VERSION = "llm-v1"
 DEFAULT_OLLAMA_URL = "http://localhost:11434"
 DEFAULT_MODEL = "qwen2.5vl:latest"
+DEFAULT_BACKEND = "mlx"
 
 
 # ---------------------------------------------------------------------------
@@ -152,6 +157,46 @@ def _call_ollama(
     finally:
         import os
         os.unlink(payload_file)
+
+
+def _call_mlx(
+    prompt: str,
+    model: str | None = None,
+    max_tokens: int = 4096,
+) -> str:
+    """Send a prompt to the local MLX model and return the response text."""
+    from longview_health.extract.mlx_extractor import generate, DEFAULT_MLX_MODEL
+
+    model_name = model or DEFAULT_MLX_MODEL
+    return generate(prompt, model_name=model_name, max_tokens=max_tokens)
+
+
+def _call_llm(
+    prompt: str,
+    backend: str = DEFAULT_BACKEND,
+    model: str | None = None,
+    base_url: str = DEFAULT_OLLAMA_URL,
+    timeout: float = 300.0,
+) -> str:
+    """Dispatch a prompt to the configured LLM backend.
+
+    Args:
+        prompt: The prompt text.
+        backend: "mlx" or "ollama".
+        model: Model identifier (backend-specific). None uses the default.
+        base_url: Ollama API URL (ignored for MLX).
+        timeout: Request timeout in seconds (Ollama only).
+
+    Returns:
+        Raw response text from the LLM.
+    """
+    if backend == "mlx":
+        return _call_mlx(prompt, model=model)
+    elif backend == "ollama":
+        ollama_model = model or DEFAULT_MODEL
+        return _call_ollama(prompt, model=ollama_model, base_url=base_url, timeout=timeout)
+    else:
+        raise ValueError(f"Unknown LLM backend: {backend!r}. Use 'mlx' or 'ollama'.")
 
 
 def _parse_llm_response(raw: str) -> ExtractionResponse:
@@ -282,7 +327,8 @@ Region content:
 def extract(
     parsed: ParsedDocument,
     fallback_date: date,
-    model: str = DEFAULT_MODEL,
+    backend: str = DEFAULT_BACKEND,
+    model: str | None = None,
     base_url: str = DEFAULT_OLLAMA_URL,
 ) -> list[MedicalResult]:
     """Extract structured medical results from a parsed document using an LLM.
@@ -290,8 +336,9 @@ def extract(
     Args:
         parsed: Output of the document parsing stage (must have markdown).
         fallback_date: Date to use if the LLM can't find a date in the document.
-        model: Ollama model to use.
-        base_url: Ollama API base URL.
+        backend: LLM backend to use ("mlx" or "ollama").
+        model: Model identifier (backend-specific). None uses the default.
+        base_url: Ollama API base URL (ignored for MLX).
 
     Returns:
         List of extracted MedicalResult objects.
@@ -313,15 +360,12 @@ def extract(
     )
 
     try:
-        raw_response = _call_ollama(prompt, model=model, base_url=base_url)
+        raw_response = _call_llm(prompt, backend=backend, model=model, base_url=base_url)
     except RuntimeError as e:
-        logger.error("Ollama call failed: %s", e)
+        logger.error("LLM call failed (%s): %s", backend, e)
         raise
     except Exception as e:
-        logger.error(
-            "Cannot connect to Ollama at %s. Is it running? (ollama serve): %s",
-            base_url, e,
-        )
+        logger.error("LLM call failed (%s): %s", backend, e)
         raise
 
     try:
@@ -370,7 +414,8 @@ def extract_region(
     doc_id: str,
     parser_used: str,
     fallback_date: date,
-    model: str = DEFAULT_MODEL,
+    backend: str = DEFAULT_BACKEND,
+    model: str | None = None,
     base_url: str = DEFAULT_OLLAMA_URL,
 ) -> list[MedicalResult]:
     """Extract structured medical results from a single document region.
@@ -383,8 +428,9 @@ def extract_region(
         doc_id: Document content hash.
         parser_used: Which parser produced the source data.
         fallback_date: Date to use if no date found.
-        model: Ollama model to use.
-        base_url: Ollama API base URL.
+        backend: LLM backend to use ("mlx" or "ollama").
+        model: Model identifier (backend-specific). None uses the default.
+        base_url: Ollama API base URL (ignored for MLX).
 
     Returns:
         List of extracted MedicalResult objects.
@@ -399,12 +445,12 @@ def extract_region(
     )
 
     try:
-        raw_response = _call_ollama(prompt, model=model, base_url=base_url)
+        raw_response = _call_llm(prompt, backend=backend, model=model, base_url=base_url)
     except RuntimeError as e:
-        logger.error("Ollama call failed for region: %s", e)
+        logger.error("LLM call failed for region (%s): %s", backend, e)
         return []
     except Exception as e:
-        logger.error("Cannot connect to Ollama at %s: %s", base_url, e)
+        logger.error("LLM call failed for region (%s): %s", backend, e)
         return []
 
     try:

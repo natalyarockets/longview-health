@@ -1,0 +1,14 @@
+# Generated Xcode project -- regenerate with `xcodegen generate`
+*.xcodeproj/
+
+# Xcode build artifacts
+DerivedData/
+build/
+*.xcworkspace/
+
+# Swift Package Manager
+.build/
+.swiftpm/
+
+# macOS metadata
+.DS_Store

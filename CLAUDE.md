@@ -131,6 +131,24 @@ simple to reason about, trivial to back up, and safe for multi-user (family) use
 - Unexpected errors propagate up and are caught at the CLI layer with clear messages.
 - Never silently skip a document. If parsing fails, it goes into the review queue.
 
+### Never Delete User Files
+
+The system must NEVER delete, move, or modify the user's original medical
+documents on disk. These files may be the user's only copy. The system only
+manages its own metadata (SQLite databases, generated reports). Vault deletion
+removes Longview's internal data (`~/.longview/vaults/<name>/`), never the
+user's document folder. No CLI command, GUI action, or migration path should
+ever touch the user's source files. This is non-negotiable.
+
+### Schema Evolution: Additive, Never Destructive
+
+The database schema will change as features are added. Migrations must be
+additive -- new tables and columns, never dropping columns that hold user data.
+Machine-generated data (extraction results) can be reprocessed from source
+documents, but user-generated content (notes, journal entries, manual edits)
+cannot be recreated. Treat user-authored data as sacred. Every migration must
+preserve it.
+
 ### Testing Strategy
 
 - Unit tests per module against its contract (input type -> output type).

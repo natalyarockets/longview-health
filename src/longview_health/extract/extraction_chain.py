@@ -52,6 +52,9 @@ def extract(
 def extract_smart(
     conversion: DoclingConversion,
     fallback_date: date,
+    backend: str = "mlx",
+    model: str | None = None,
+    base_url: str = "http://localhost:11434",
 ) -> list[MedicalResult]:
     """Extract structured medical results using region-based routing.
 
@@ -68,6 +71,9 @@ def extract_smart(
     Args:
         conversion: DoclingConversion with ParsedDocument and optional DoclingDocument.
         fallback_date: Date to use if no date found in the document.
+        backend: LLM backend ("mlx" or "ollama").
+        model: Model identifier (backend-specific). None uses the default.
+        base_url: Ollama API URL (ignored for MLX).
 
     Returns:
         List of MedicalResult objects with full provenance.
@@ -124,6 +130,9 @@ def extract_smart(
             doc_id=parsed.document_id,
             parser_used=parsed.parser_used,
             fallback_date=result_date,
+            backend=backend,
+            model=model,
+            base_url=base_url,
         )
         logger.info("LLM extraction: %d results", len(llm_results))
         all_result_lists.append(llm_results)

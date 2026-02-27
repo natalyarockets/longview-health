@@ -53,7 +53,11 @@ def _build_document(
 
 
 def _parse_and_extract(
-    file_path: Path, doc: Document
+    file_path: Path,
+    doc: Document,
+    backend: str = "mlx",
+    model: str | None = None,
+    base_url: str = "http://localhost:11434",
 ) -> tuple[ParsedDocument, list[MedicalResult]]:
     """Parse and extract results from a single document.
 
@@ -96,6 +100,9 @@ def _parse_and_extract(
                 doc_id=parsed.document_id,
                 parser_used=parsed.parser_used,
                 fallback_date=result_date,
+                backend=backend,
+                model=model,
+                base_url=base_url,
             )
             all_lists.append(llm_results)
 
@@ -148,6 +155,9 @@ def ingest_vault(
     *,
     reprocess: bool = False,
     on_file: callable | None = None,
+    backend: str = "mlx",
+    model: str | None = None,
+    base_url: str = "http://localhost:11434",
 ) -> IngestResult:
     """Run the full ingestion pipeline for a vault.
 
@@ -156,6 +166,9 @@ def ingest_vault(
         vault_name: Name of the vault to ingest.
         reprocess: If True, re-extract even for already-indexed documents.
         on_file: Optional callback(filename, status) for progress reporting.
+        backend: LLM backend ("mlx" or "ollama").
+        model: Model identifier (backend-specific). None uses the default.
+        base_url: Ollama API URL (ignored for MLX).
     """
     doc_dir = vault_documents_dir(config, vault_name)
     files = enumerate_documents(doc_dir)
@@ -190,7 +203,9 @@ def ingest_vault(
 
         try:
             # Parse and extract results
-            parsed, raw_results = _parse_and_extract(file_path, doc)
+            parsed, raw_results = _parse_and_extract(
+                file_path, doc, backend=backend, model=model, base_url=base_url
+            )
             documents_parsed += 1
 
             # Validate and triage (rejected/flagged → review queue)
