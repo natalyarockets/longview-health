@@ -37,7 +37,7 @@ targets:
         CODE_SIGN_STYLE: Automatic
     dependencies:
       - package: GRDB
-    preBuildScripts:
+    postCompileScripts:
       - name: Copy Longview Engine
         script: |
           ENGINE_SRC="${PROJECT_DIR}/LongviewHealth/Resources/longview-engine"
