@@ -29,6 +29,7 @@ class IngestResult:
     files_found: int
     files_new: int
     files_skipped: int  # already ingested, unchanged
+    files_removed: int  # source files no longer present, cleaned up
     documents_parsed: int
     results_extracted: int
     results_stored: int
@@ -213,10 +214,21 @@ def ingest_vault(
             if on_file:
                 on_file(file_path.name, f"error: {e}")
 
+    # Clean up documents whose source files no longer exist
+    files_removed = 0
+    current_hashes = {content_hash(f) for f in files}
+    for doc in document_store.list_documents(config, vault_name):
+        if doc.content_hash not in current_hashes:
+            document_store.delete_document(config, vault_name, doc.id)
+            files_removed += 1
+            if on_file:
+                on_file(doc.filename, "removed (source file gone)")
+
     return IngestResult(
         files_found=len(files),
         files_new=files_new,
         files_skipped=files_skipped,
+        files_removed=files_removed,
         documents_parsed=documents_parsed,
         results_extracted=total_extracted,
         results_stored=total_stored,

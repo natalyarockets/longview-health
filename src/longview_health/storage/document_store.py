@@ -92,6 +92,19 @@ def list_documents(config: AppConfig, vault_name: str) -> list[Document]:
         conn.close()
 
 
+def delete_document(config: AppConfig, vault_name: str, document_id: str) -> None:
+    """Delete a document and all its associated results, review items, and FTS entries."""
+    conn = connect_vault(config, vault_name)
+    try:
+        conn.execute("DELETE FROM review_queue WHERE document_id = ?", (document_id,))
+        conn.execute("DELETE FROM medical_results WHERE document_id = ?", (document_id,))
+        conn.execute("DELETE FROM documents_fts WHERE document_id = ?", (document_id,))
+        conn.execute("DELETE FROM documents WHERE id = ?", (document_id,))
+        conn.commit()
+    finally:
+        conn.close()
+
+
 def document_count(config: AppConfig, vault_name: str) -> int:
     """Return the number of documents in a vault."""
     conn = connect_vault(config, vault_name)

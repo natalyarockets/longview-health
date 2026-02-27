@@ -44,6 +44,8 @@ def rescan(vault: str, reprocess: bool, no_export: bool) -> None:
     click.echo(f"Files found:     {result.files_found}")
     click.echo(f"New/changed:     {result.files_new}")
     click.echo(f"Skipped:         {result.files_skipped}")
+    if result.files_removed:
+        click.echo(f"Removed:         {result.files_removed}")
     click.echo(f"Parsed:          {result.documents_parsed}")
     click.echo(f"Results stored:  {result.results_stored}")
 
@@ -53,8 +55,9 @@ def rescan(vault: str, reprocess: bool, no_export: bool) -> None:
         for err in result.errors:
             click.echo(f"  {err}", err=True)
 
-    # Auto-export PDF trend report
-    if not no_export and result.results_stored > 0:
+    # Auto-export PDF trend report (regenerate if anything changed)
+    has_changes = result.results_stored > 0 or result.files_removed > 0
+    if not no_export and has_changes:
         from longview_health.core.paths import vault_documents_dir
         from longview_health.storage import results_store
         from longview_health.trends.engine import build_trend_report
