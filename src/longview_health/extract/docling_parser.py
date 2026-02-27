@@ -12,7 +12,7 @@ from docling.datamodel.document import ConversionResult
 from docling.document_converter import DocumentConverter, FormatOption, PdfFormatOption
 
 from longview_health.core.errors import ParseError
-from longview_health.domain.models import ParsedDocument, ParsedTable
+from longview_health.domain.models import DoclingConversion, ParsedDocument, ParsedTable
 
 
 def _build_converter() -> DocumentConverter:
@@ -96,14 +96,17 @@ def _extract_text_blocks(result: ConversionResult) -> list[str]:
     return blocks
 
 
-def parse(file_path: Path) -> ParsedDocument:
-    """Parse a document using Docling.
+def parse_rich(file_path: Path) -> DoclingConversion:
+    """Parse a document using Docling, preserving the raw DoclingDocument.
+
+    Returns a DoclingConversion that pairs the standard ParsedDocument with
+    the original Docling element tree for smart section routing.
 
     Args:
         file_path: Path to a PDF or image file.
 
     Returns:
-        ParsedDocument with extracted text blocks and tables.
+        DoclingConversion with both ParsedDocument and raw DoclingDocument.
 
     Raises:
         ParseError: If Docling fails to convert the document.
@@ -140,7 +143,7 @@ def parse(file_path: Path) -> ParsedDocument:
 
     doc_id = content_hash(file_path)
 
-    return ParsedDocument(
+    parsed = ParsedDocument(
         document_id=doc_id,
         markdown=markdown,
         text_blocks=text_blocks,
@@ -149,3 +152,23 @@ def parse(file_path: Path) -> ParsedDocument:
         page_count=page_count,
         warnings=warnings,
     )
+
+    return DoclingConversion(
+        parsed=parsed,
+        docling_document=result.document,
+    )
+
+
+def parse(file_path: Path) -> ParsedDocument:
+    """Parse a document using Docling.
+
+    Args:
+        file_path: Path to a PDF or image file.
+
+    Returns:
+        ParsedDocument with extracted text blocks and tables.
+
+    Raises:
+        ParseError: If Docling fails to convert the document.
+    """
+    return parse_rich(file_path).parsed

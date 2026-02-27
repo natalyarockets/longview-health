@@ -25,7 +25,7 @@ logger = logging.getLogger(__name__)
 
 EXTRACTOR_VERSION = "llm-v1"
 DEFAULT_OLLAMA_URL = "http://localhost:11434"
-DEFAULT_MODEL = "qwen2.5-vl:7b"
+DEFAULT_MODEL = "qwen2.5vl:latest"
 
 
 # ---------------------------------------------------------------------------
@@ -109,25 +109,49 @@ def _call_ollama(
     prompt: str,
     model: str = DEFAULT_MODEL,
     base_url: str = DEFAULT_OLLAMA_URL,
-    timeout: float = 120.0,
+    timeout: float = 300.0,
 ) -> str:
     """Send a prompt to Ollama and return the response text."""
-    response = httpx.post(
-        f"{base_url}/api/generate",
-        json={
-            "model": model,
-            "prompt": prompt,
-            "stream": False,
-            "options": {
-                "temperature": 0.0,
-                "num_predict": 4096,
-            },
-            "format": "json",
+    import subprocess
+    import tempfile
+
+    payload = json.dumps({
+        "model": model,
+        "prompt": prompt,
+        "stream": False,
+        "options": {
+            "temperature": 0.0,
+            "num_predict": 4096,
+            "num_ctx": 16384,
         },
-        timeout=timeout,
-    )
-    response.raise_for_status()
-    return response.json()["response"]
+        "format": "json",
+    })
+
+    # Use curl instead of httpx — httpx has buffering issues with large
+    # payloads to Ollama that cause requests to hang until connection close.
+    with tempfile.NamedTemporaryFile(mode="w", suffix=".json", delete=False) as f:
+        f.write(payload)
+        payload_file = f.name
+
+    try:
+        result = subprocess.run(
+            [
+                "curl", "-s", "-S",
+                "--max-time", str(int(timeout)),
+                "-H", "Content-Type: application/json",
+                "-d", f"@{payload_file}",
+                f"{base_url}/api/generate",
+            ],
+            capture_output=True,
+            text=True,
+            timeout=timeout + 10,
+        )
+        if result.returncode != 0:
+            raise RuntimeError(f"curl failed: {result.stderr}")
+        return json.loads(result.stdout)["response"]
+    finally:
+        import os
+        os.unlink(payload_file)
 
 
 def _parse_llm_response(raw: str) -> ExtractionResponse:
@@ -177,6 +201,40 @@ def _parse_date(date_str: str | None, fallback: date) -> date:
 
 
 # ---------------------------------------------------------------------------
+# Markdown cleanup -- Docling sometimes produces tables with duplicated columns
+# ---------------------------------------------------------------------------
+
+
+def _dedup_table_columns(markdown: str) -> str:
+    """Remove duplicate columns from markdown tables.
+
+    Docling sometimes produces tables where the same content is repeated across
+    multiple columns (e.g., an 8-column table where columns 2-8 are copies of
+    column 1). This inflates the prompt by 10x and can cause Ollama to fail.
+    """
+    lines = markdown.split("\n")
+    cleaned = []
+    for line in lines:
+        if line.startswith("|") and line.endswith("|"):
+            cells = [c.strip() for c in line.split("|")]
+            # cells[0] and cells[-1] are empty strings from leading/trailing |
+            cells = cells[1:-1]
+            if len(cells) > 2:
+                # Keep only unique cells in order (preserves first occurrence)
+                seen = set()
+                unique = []
+                for cell in cells:
+                    normalized = cell.strip().strip("-")
+                    if normalized not in seen:
+                        seen.add(normalized)
+                        unique.append(cell)
+                if len(unique) < len(cells):
+                    line = "| " + " | ".join(unique) + " |"
+        cleaned.append(line)
+    return "\n".join(cleaned)
+
+
+# ---------------------------------------------------------------------------
 # Public API
 # ---------------------------------------------------------------------------
 
@@ -202,21 +260,28 @@ def extract(
         logger.warning("Empty markdown for document %s, skipping LLM extraction", parsed.document_id)
         return []
 
+    # Clean up duplicated table columns from Docling output
+    cleaned_markdown = _dedup_table_columns(parsed.markdown)
+    logger.info(
+        "Markdown %d -> %d chars after dedup", len(parsed.markdown), len(cleaned_markdown)
+    )
+
     schema_json = ExtractionResponse.model_json_schema()
     prompt = EXTRACTION_PROMPT.format(
         schema=json.dumps(schema_json, indent=2),
-        document=parsed.markdown,
+        document=cleaned_markdown,
     )
 
     try:
         raw_response = _call_ollama(prompt, model=model, base_url=base_url)
-    except httpx.ConnectError:
-        logger.error(
-            "Cannot connect to Ollama at %s. Is it running? (ollama serve)", base_url
-        )
+    except RuntimeError as e:
+        logger.error("Ollama call failed: %s", e)
         raise
-    except httpx.HTTPStatusError as e:
-        logger.error("Ollama returned error: %s", e.response.text)
+    except Exception as e:
+        logger.error(
+            "Cannot connect to Ollama at %s. Is it running? (ollama serve): %s",
+            base_url, e,
+        )
         raise
 
     try:

@@ -7,6 +7,7 @@ mutated in place. New instances are created at each stage boundary.
 from __future__ import annotations
 
 from datetime import date, datetime
+from typing import Any
 
 from pydantic import BaseModel, Field
 
@@ -76,6 +77,24 @@ class ParsedDocument(BaseModel, frozen=True):
     parser_used: str
     page_count: int | None = None
     warnings: list[str] = Field(default_factory=list)
+
+
+# ---------------------------------------------------------------------------
+# Rich conversion (preserves Docling element tree)
+# ---------------------------------------------------------------------------
+
+
+class DoclingConversion(BaseModel, frozen=True):
+    """Pairs a ParsedDocument with the raw Docling document object.
+
+    The docling_document preserves Docling's element tree (tables, groups,
+    form areas) for smart routing. Uses Any to avoid coupling domain to
+    docling_core types. None when parsed by a non-Docling parser (e.g.
+    pdfplumber fallback).
+    """
+
+    parsed: ParsedDocument
+    docling_document: Any | None = None
 
 
 # ---------------------------------------------------------------------------
