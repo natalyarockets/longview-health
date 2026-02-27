@@ -4,7 +4,7 @@ from datetime import date
 
 from longview_health.domain.enums import Confidence, ResultCategory, ValidationStatus
 from longview_health.extract.form_extractor import (
-    _identify_header_span,
+    _find_header_span,
     _parse_reference_range,
     extract_from_form_group,
 )
@@ -30,24 +30,39 @@ class TestParseReferenceRange:
         assert _parse_reference_range("") == (None, None)
 
 
-class TestIdentifyHeaderSpan:
+class TestFindHeaderSpan:
     def test_standard_lab_headers(self) -> None:
         texts = ["TESTS", "RESULTS", "FLAG", "UNITS", "REFERENCE INTERVAL", "LAB", "hCG", "<1"]
-        roles, count = _identify_header_span(texts)
+        roles, start, count = _find_header_span(texts)
         assert count == 6
+        assert start == 0
         assert roles == ["test", "result", "flag", "unit", "reference", "lab"]
 
     def test_minimal_headers(self) -> None:
         texts = ["TEST", "RESULT", "WBC", "7.5"]
-        roles, count = _identify_header_span(texts)
+        roles, start, count = _find_header_span(texts)
         assert count == 2
+        assert start == 0
         assert roles == ["test", "result"]
 
     def test_no_headers(self) -> None:
         texts = ["John Doe", "2024-01-15", "Normal"]
-        roles, count = _identify_header_span(texts)
+        roles, start, count = _find_header_span(texts)
         assert count == 0
         assert roles == []
+
+    def test_headers_after_metadata(self) -> None:
+        """Real-world case: patient info before lab headers."""
+        texts = [
+            "Specimen Number", "Patient ID", "15022905670", "110964687",
+            "Patient Last Name", "BAILEY", "Date of Birth", "1986-09-26",
+            "TESTS", "RESULTS", "FLAG", "UNITS", "REFERENCE INTERVAL", "LAB",
+            "hCG", "468", "", "mIU/mL", "0-5", "01",
+        ]
+        roles, start, count = _find_header_span(texts)
+        assert count == 6
+        assert start == 8
+        assert roles == ["test", "result", "flag", "unit", "reference", "lab"]
 
 
 class TestExtractFromFormGroup:
@@ -163,6 +178,29 @@ class TestExtractFromFormGroup:
         )
 
         assert results[0].validation_status == ValidationStatus.PENDING
+
+    def test_headers_buried_after_metadata(self) -> None:
+        """Real-world: patient metadata precedes the header row."""
+        texts = [
+            "Specimen Number", "Patient ID", "15022905670", "110964687",
+            "Patient Last Name", "BAILEY",
+            "TESTS", "RESULTS", "FLAG", "UNITS", "REFERENCE INTERVAL", "LAB",
+            "hCG,Beta Subunit,Qnt,Serum", "468", "", "mIU/mL", "0-5", "01",
+        ]
+
+        results = extract_from_form_group(
+            group_texts=texts,
+            doc_id="abc123",
+            result_date=date(2025, 2, 21),
+            parser_used="docling",
+        )
+
+        assert len(results) == 1
+        assert results[0].test_name == "hCG,Beta Subunit,Qnt,Serum"
+        assert results[0].result_value.value == "468"
+        assert results[0].result_value.unit == "mIU/mL"
+        assert results[0].result_value.reference_low == "0"
+        assert results[0].result_value.reference_high == "5"
 
     def test_partial_row_ignored(self) -> None:
         """If data items don't fill a complete row, the partial row is skipped."""

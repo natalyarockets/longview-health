@@ -63,24 +63,44 @@ def _parse_reference_range(ref: str) -> tuple[str | None, str | None]:
     return None, None
 
 
-def _identify_header_span(texts: list[str]) -> tuple[list[str], int]:
-    """Find the header items at the start of the text list.
+def _find_header_span(texts: list[str]) -> tuple[list[str], int, int]:
+    """Find a consecutive run of header items anywhere in the text list.
+
+    Scans the full list for the longest consecutive run of recognized
+    header keywords (TESTS, RESULTS, FLAG, etc.). Real form areas often
+    have patient metadata before the headers.
 
     Returns:
-        Tuple of (ordered column roles, number of header items consumed).
+        Tuple of (ordered column roles, start index, header count).
+        Returns ([], 0, 0) if no valid header span found.
     """
-    roles: list[str] = []
-    count = 0
+    best_roles: list[str] = []
+    best_start = 0
+    best_count = 0
 
-    for t in texts:
-        normalized = t.lower().strip()
+    i = 0
+    while i < len(texts):
+        normalized = texts[i].lower().strip()
         if normalized in _HEADER_LABELS:
-            roles.append(_HEADER_LABELS[normalized])
-            count += 1
+            # Start collecting a consecutive run
+            run_start = i
+            run_roles: list[str] = []
+            while i < len(texts):
+                n = texts[i].lower().strip()
+                if n in _HEADER_LABELS:
+                    run_roles.append(_HEADER_LABELS[n])
+                    i += 1
+                else:
+                    break
+            # Keep the longest run that has both test + result
+            if len(run_roles) > best_count and "test" in run_roles and "result" in run_roles:
+                best_roles = run_roles
+                best_start = run_start
+                best_count = len(run_roles)
         else:
-            break
+            i += 1
 
-    return roles, count
+    return best_roles, best_start, best_count
 
 
 def extract_from_form_group(
@@ -107,14 +127,14 @@ def extract_from_form_group(
     if not group_texts:
         return []
 
-    # Identify header span
-    roles, header_count = _identify_header_span(group_texts)
-    if header_count < 2 or "test" not in roles or "result" not in roles:
+    # Find header span (may be buried after patient metadata)
+    roles, header_start, header_count = _find_header_span(group_texts)
+    if header_count < 2:
         logger.debug("Form group missing required headers (test, result), skipping")
         return []
 
-    # Remaining items are data, chunked by column count
-    data_items = group_texts[header_count:]
+    # Data items start after the header span
+    data_items = group_texts[header_start + header_count:]
     cols = header_count
 
     if not data_items or len(data_items) < cols:
