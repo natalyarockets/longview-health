@@ -98,6 +98,10 @@ ollama serve
 ollama pull qwen2.5-vl:7b
 ```
 
+## Roadmap
+
+See [`docs/ROADMAP.md`](docs/ROADMAP.md) for future directions including imaging/pathology support, a health journal for qualitative context, and issue-based grouping for tracking investigations.
+
 ## Design Principles
 
 See [`CLAUDE.md`](CLAUDE.md) for the full set of architectural principles and systems-level thinking guidelines that govern this project. Key highlights:

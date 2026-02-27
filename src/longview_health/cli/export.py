@@ -1,7 +1,5 @@
 """Export command -- export trends to portable formats."""
 
-from datetime import date
-
 import click
 
 from longview_health.core.config import AppConfig
@@ -55,9 +53,8 @@ def export(
     doc_names = results_store.get_document_names(config, vault, doc_ids)
 
     if output_path is None:
-        from longview_health.core.paths import vault_documents_dir
-        doc_dir = vault_documents_dir(config, vault)
-        output_path = str(doc_dir / f"{vault}-trends-{date.today().isoformat()}.pdf")
+        from longview_health.core.paths import vault_trends_pdf
+        output_path = str(vault_trends_pdf(config, vault))
 
     path = export_pdf(report, output_path, doc_names=doc_names)
     click.echo(f"Exported {report.total_results} results to {path}")

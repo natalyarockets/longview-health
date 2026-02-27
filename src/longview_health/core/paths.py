@@ -20,6 +20,16 @@ def _source_path_file(config: AppConfig, vault_name: str) -> Path:
     return vault_dir(config, vault_name) / "source_path"
 
 
+def vault_trends_pdf(config: AppConfig, vault_name: str) -> Path:
+    """Canonical path for the vault's trends report PDF.
+
+    Lives in the documents directory alongside medical records so the user
+    can find it easily. The enumerator knows to skip this file during scans.
+    Always the same path -- overwritten on each export.
+    """
+    return vault_documents_dir(config, vault_name) / f"{vault_name}-trends.pdf"
+
+
 def vault_documents_dir(config: AppConfig, vault_name: str) -> Path:
     """Directory where source documents live.
 

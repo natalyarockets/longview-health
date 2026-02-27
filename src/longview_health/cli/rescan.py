@@ -1,7 +1,5 @@
 """Rescan command -- ingest and process documents in a vault."""
 
-from datetime import date
-
 import click
 
 from longview_health.core.config import AppConfig
@@ -58,7 +56,7 @@ def rescan(vault: str, reprocess: bool, no_export: bool) -> None:
     # Auto-export PDF trend report (regenerate if anything changed)
     has_changes = result.results_stored > 0 or result.files_removed > 0
     if not no_export and has_changes:
-        from longview_health.core.paths import vault_documents_dir
+        from longview_health.core.paths import vault_trends_pdf
         from longview_health.storage import results_store
         from longview_health.trends.engine import build_trend_report
         from longview_health.trends.export import export_pdf
@@ -69,8 +67,7 @@ def rescan(vault: str, reprocess: bool, no_export: bool) -> None:
             doc_ids = list({r.document_id for r in all_results})
             doc_names = results_store.get_document_names(config, vault, doc_ids)
 
-            doc_dir = vault_documents_dir(config, vault)
-            out_path = doc_dir / f"{vault}-trends-{date.today().isoformat()}.pdf"
+            out_path = vault_trends_pdf(config, vault)
             export_pdf(report, out_path, doc_names=doc_names)
 
             click.echo()
