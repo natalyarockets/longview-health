@@ -31,3 +31,6 @@ htmlcov/
 # Project data (vault databases, user documents)
 *.db
 vaults/
+
+# Development output (visualizations, debug dumps)
+dev_output/

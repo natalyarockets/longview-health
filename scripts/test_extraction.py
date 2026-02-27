@@ -43,7 +43,10 @@ def main():
     print(f"  Parse time: {parse_ms:.0f}ms")
 
     # Save raw markdown for inspection
-    raw_md_path = Path("/tmp/longview_raw_markdown.md")
+    project_root = Path(__file__).resolve().parent.parent
+    out_dir = project_root / "dev_output" / pdf_path.stem
+    out_dir.mkdir(parents=True, exist_ok=True)
+    raw_md_path = out_dir / "raw_markdown.md"
     raw_md_path.write_text(parsed.markdown)
     print(f"  Raw markdown saved to: {raw_md_path}")
     print()
