@@ -3,14 +3,16 @@
 Two extraction paths:
 
 1. extract() -- Legacy. Parses markdown tables only. Fast but misses
-   form-area and unstructured content.
+   non-tabular content.
 
-2. extract_smart() -- Uses Docling's element tree for smart routing.
-   Dispatches each document section to the most appropriate extractor:
-   - TableItem → table extractor (instant, HIGH confidence)
-   - form_area with lab headers → form extractor (instant, HIGH confidence)
-   - unstructured text → LLM extractor (slow, MEDIUM confidence, opt-in)
+2. extract_smart() -- Region-based extraction using Docling's element tree.
+   Groups elements into spatial regions, then dispatches:
+   - Docling TableItem regions → table extractor (instant, HIGH confidence)
+   - All non-table text regions → combined into ONE LLM call (MEDIUM confidence)
    Results are merged with dedup by composite key.
+
+Architecture: Docling handles WHERE (spatial layout, bounding boxes).
+The LLM handles WHAT (semantic understanding of non-table content).
 """
 
 from __future__ import annotations
@@ -19,11 +21,13 @@ import logging
 from datetime import date
 
 from longview_health.domain.models import DoclingConversion, MedicalResult, ParsedDocument
-from longview_health.extract import form_extractor, result_merger, table_parser
-from longview_health.extract.section_router import SectionType, classify
+from longview_health.extract import llm_extractor, result_merger, table_parser
+from longview_health.extract.region_grouper import group_regions
 from longview_health.extract.table_parser import _detect_date
 
 logger = logging.getLogger(__name__)
+
+_REGION_SEPARATOR = "\n\n---\n\n"
 
 
 def extract(
@@ -48,18 +52,22 @@ def extract(
 def extract_smart(
     conversion: DoclingConversion,
     fallback_date: date,
-    use_llm: bool = False,
 ) -> list[MedicalResult]:
-    """Extract structured medical results using smart section routing.
+    """Extract structured medical results using region-based routing.
 
-    Uses Docling's element tree to classify each document section and
-    dispatch to the most appropriate extractor. Falls back to the legacy
-    markdown table parser when no Docling element tree is available.
+    Groups Docling elements into spatial regions, then dispatches:
+    - Docling TableItem regions → deterministic table extractor (fast path)
+    - All non-table text → combined into a single LLM call
+
+    Every non-table region is checked by the LLM regardless of whether
+    tables produced results, because results can appear outside tables.
+
+    Falls back to legacy markdown table parser when no Docling element tree
+    is available.
 
     Args:
         conversion: DoclingConversion with ParsedDocument and optional DoclingDocument.
         fallback_date: Date to use if no date found in the document.
-        use_llm: Whether to use LLM extraction for unstructured sections.
 
     Returns:
         List of MedicalResult objects with full provenance.
@@ -75,50 +83,59 @@ def extract_smart(
     # Detect date from the markdown content
     result_date = _detect_date(parsed.markdown) or fallback_date
 
-    # Classify document sections
-    sections = classify(docling_doc)
+    # Group elements into spatial regions
+    regions = group_regions(docling_doc)
 
-    if not sections:
-        logger.info("No sections classified, falling back to markdown table parser")
+    if not regions:
+        logger.info("No regions found, falling back to markdown table parser")
         return table_parser.extract(parsed=parsed, fallback_date=fallback_date)
 
-    # Dispatch each section to its extractor
+    # 1. Run table extractor on table regions (instant)
     all_result_lists: list[list[MedicalResult]] = []
 
-    for section in sections:
-        if section.section_type == SectionType.TABLE:
+    for region in regions:
+        if region.table_item is not None:
             results = table_parser.extract_from_table_item(
-                table_item=section.table_item,
+                table_item=region.table_item,
                 doc_id=parsed.document_id,
                 result_date=result_date,
                 parser_used=parsed.parser_used,
             )
-            all_result_lists.append(results)
-
-        elif section.section_type == SectionType.FORM:
-            results = form_extractor.extract_from_form_group(
-                group_texts=section.texts,
-                doc_id=parsed.document_id,
-                result_date=result_date,
-                parser_used=parsed.parser_used,
+            logger.info(
+                "Table region (page %d): %d results via table extractor",
+                region.page_no, len(results),
             )
             all_result_lists.append(results)
 
-        elif section.section_type == SectionType.UNSTRUCTURED and use_llm:
-            from longview_health.extract import llm_extractor
+    # 2. Combine all non-table text into a single LLM call
+    text_chunks = []
+    for region in regions:
+        if region.table_item is None and region.text.strip():
+            text_chunks.append(region.text.strip())
 
-            results = llm_extractor.extract(
-                parsed=parsed,
-                fallback_date=fallback_date,
-            )
-            all_result_lists.append(results)
+    if text_chunks:
+        combined_text = _REGION_SEPARATOR.join(text_chunks)
+        logger.info(
+            "Sending %d non-table regions to LLM (%d chars combined)",
+            len(text_chunks), len(combined_text),
+        )
+        llm_results = llm_extractor.extract_region(
+            region_text=combined_text,
+            doc_id=parsed.document_id,
+            parser_used=parsed.parser_used,
+            fallback_date=result_date,
+        )
+        logger.info("LLM extraction: %d results", len(llm_results))
+        all_result_lists.append(llm_results)
 
     # Merge and deduplicate
     merged = result_merger.merge(*all_result_lists)
 
     logger.info(
-        "Smart extraction: %d sections → %d results (from %d pre-merge)",
-        len(sections),
+        "Smart extraction: %d regions (%d table, %d text) → %d results (from %d pre-merge)",
+        len(regions),
+        sum(1 for r in regions if r.table_item is not None),
+        len(text_chunks),
         len(merged),
         sum(len(r) for r in all_result_lists),
     )

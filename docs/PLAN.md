@@ -104,23 +104,28 @@
 
 **Goal:** Map parsed document content to typed medical results (labs, imaging, pathology, diagnostics).
 
-### 4a: Extraction framework
-- [ ] `extract/protocols.py` -- `StructuredExtractor` protocol
-- [ ] `domain/models.py` -- refine `MedicalResult`, `ResultValue` with units, reference ranges, result categories
+### 4a: Domain models and contracts
+- [x] `domain/models.py` -- `MedicalResult`, `ResultValue`, `DoclingConversion` with full provenance
+- [x] `core/protocols.py` -- `DocumentParser`, `StructuredExtractor` protocols
 
-### 4b: Table-based extractor
-- [ ] `extract/table_extractor.py` -- extract results from tabular data (lab panels, structured reports)
-- [ ] Pattern matching for common report formats (CBC, CMP, lipid panel, imaging findings, etc.)
+### 4b: Region grouping
+- [ ] `extract/region_grouper.py` -- spatial clustering of Docling elements into logical regions
+- [ ] Uses bounding box y-proximity to group related elements (headers + data)
+- [ ] Each region is a focused chunk for LLM extraction
 
-### 4c: Text-based extractor
-- [ ] `extract/text_extractor.py` -- regex/pattern extraction for narrative-format results (radiology reports, pathology notes)
+### 4c: Per-region LLM extraction (primary path)
+- [x] `extract/llm_extractor.py` -- schema-constrained extraction via Ollama
+- [ ] `extract_region()` -- focused per-region extraction (small context = faster + more accurate)
+- [ ] Each region gets its own LLM call instead of dumping the whole document
 
-### 4d: LLM/VLM extractor (last resort)
-- [ ] `extract/llm_extractor.py` -- schema-constrained LLM/VLM call for ambiguous documents
-- [ ] Strict output schema, confidence scoring, never auto-trusted
+### 4d: Deterministic table extraction (fast path for clean tables)
+- [x] `extract/table_parser.py` -- direct grid extraction from Docling TableItem
+- [ ] Used when Docling identifies a proper table with structured cells
+- [ ] Optimization only -- LLM is the primary extraction path
 
 ### 4e: Extraction orchestration
-- [ ] `extract/extraction_chain.py` -- try extractors, merge results, tag source method and result category
+- [x] `extract/extraction_chain.py` -- `extract_smart()` routes regions to extractors
+- [ ] `extract/result_merger.py` -- deduplicate results across regions/extractors
 - [ ] Wire into rescan pipeline after parsing stage
 
 **Deliverable:** Parsed documents produce typed `MedicalResult`/`ResultValue` objects with provenance and category.

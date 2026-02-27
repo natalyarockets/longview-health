@@ -101,3 +101,4 @@ class TestMerge:
 
         assert len(merged) == 1
         assert merged[0].extractor_version == "table-v1"
+

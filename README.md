@@ -12,21 +12,21 @@ Longview ingests your medical documents (lab reports, imaging results, pathology
 
 ```
 Document (PDF/image)
-  -> Docling        (layout-aware parsing, produces clean markdown with tables)
-  -> Local LLM      (schema-constrained extraction via Ollama)
-  -> MedicalResult   (typed Pydantic objects with full provenance)
-  -> Validation      (gate before trusted storage)
-  -> SQLite          (per-vault relational storage)
+  -> Docling        (layout analysis: bounding boxes, element classification, OCR)
+  -> Region Grouper (spatial clustering of elements into logical regions)
+  -> Per-region LLM (focused Ollama calls per region -> MedicalResult JSON)
+  -> Validation     (gate before trusted storage)
+  -> SQLite         (per-vault relational storage)
 ```
 
-Docling handles the hard part (layout, tables, OCR) and produces markdown. A local LLM (via Ollama) reads the markdown and extracts structured results into our Pydantic schema. No regex, no brittle pattern matching. All processing runs locally -- no data leaves your machine.
+Docling handles spatial layout (where things are on the page, element types, bounding boxes). A local LLM (via Ollama) handles meaning -- each document region gets its own focused extraction call with a small, targeted prompt. No regex, no brittle column-counting heuristics. All processing runs locally -- no data leaves your machine.
 
 ## Features (MVP)
 
 - **Vault management** -- isolated per-person data stores backed by SQLite
 - **Document ingestion** -- PDF, PNG, JPG, TIFF with content-hash deduplication
-- **Smart parsing** -- Docling-powered layout/table extraction to markdown
-- **LLM extraction** -- local LLM (Ollama) maps markdown to typed medical results
+- **Smart parsing** -- Docling layout analysis with bounding boxes and element classification
+- **Region-based LLM extraction** -- focused per-region Ollama calls for accurate extraction
 - **Full provenance** -- every result tracks which parser and extractor produced it
 - **Validation gate** -- every extraction is validated before entering trusted storage
 - **Full-text search** -- FTS5-powered search across all documents in a vault
@@ -52,11 +52,10 @@ longview review <vault>
 | Language | Python 3.11+ |
 | CLI | Click |
 | Document parsing | Docling (required) |
-| Structured extraction | Local LLM via Ollama (qwen2.5-vl, llama3.2-vision) |
+| Structured extraction | Local LLM via Ollama (per-region focused calls) |
 | Storage | SQLite (one DB per vault) |
 | Search | FTS5 |
 | Domain models | Pydantic v2 |
-| HTTP client | httpx (Ollama API) |
 | Testing | pytest |
 | Package management | uv |
 
@@ -68,7 +67,7 @@ src/longview_health/
   core/         # config, paths, contracts
   domain/       # typed models and schemas
   ingest/       # file discovery, hashing, orchestration
-  extract/      # Docling parser + LLM extractor
+  extract/      # Docling parsing, region grouping, LLM extraction
   validate/     # validation gate
   storage/      # SQLite persistence
   search/       # FTS5 indexing and query
@@ -106,6 +105,6 @@ See [`CLAUDE.md`](CLAUDE.md) for the full set of architectural principles and sy
 - **Data flows downhill** -- linear pipeline, no sideways dependencies
 - **Contracts over conventions** -- typed interfaces at every module boundary
 - **Accuracy over automation** -- validation gate, review queue, manual override
-- **Best tools first** -- Docling for parsing, LLM for semantic extraction, all local
+- **Best tools first** -- Docling for spatial layout, LLM for meaning, all local
 - **Design for reprocessing** -- content-hashed, versioned, idempotent
 - **Isolation by default** -- fully independent vaults, zero shared state

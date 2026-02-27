@@ -12,7 +12,7 @@ result types: lab panels, imaging (MRI, CT, X-ray), pathology, diagnostics (EKG,
 vitals, and any other test/finding with a reportable value. Each family member gets
 an isolated vault backed by SQLite.
 
-**Current phase:** Pre-implementation. Scaffolding and architecture only.
+**Current phase:** Active development. Parsing and extraction pipeline working.
 
 ---
 
@@ -30,8 +30,9 @@ shared domain type). Draw the data flow before writing the code.
 ```
 Document on disk
   -> FileEnumerator (discovers, hashes, deduplicates)
-  -> Docling (layout-aware parsing -> clean markdown with tables)
-  -> Local LLM via Ollama (markdown -> schema-constrained MedicalResult JSON)
+  -> Docling (layout analysis: bounding boxes, element classification, text extraction)
+  -> Region Grouper (spatial clustering of elements into logical regions)
+  -> Per-region LLM extraction (small, focused Ollama calls per region)
   -> ValidationEngine (rejects or flags bad extractions)
   -> StorageLayer (persists validated results)
   -> SearchIndex (indexes for retrieval)
@@ -57,19 +58,24 @@ correct results. An unreviewed result is not a trusted result.
 
 ### 5. Best Tools First, No Brittle Heuristics
 
-The pipeline uses the best tool at each stage:
+Each tool does what it's best at:
 
-1. **Docling** (required) -- layout-aware parsing produces clean markdown with tables.
-   This is the hard part: understanding document structure, preserving table geometry,
-   handling multi-column layouts, OCR when needed.
-2. **Local LLM** (via Ollama) -- reads the markdown and extracts structured results.
-   The LLM handles semantic understanding: which values are test results, what the
-   reference ranges mean, whether something is a lab vs imaging finding.
-   Output is schema-constrained (Pydantic JSON) and validation-gated.
+1. **Docling** (required) -- layout analysis. Produces bounding boxes, element
+   classification (table, text, section header, form area), and OCR. Docling tells
+   us WHERE things are on the page and what kind of layout element they are.
+   Its element tree and spatial coordinates are preserved, not thrown away.
+2. **Local LLM** (via Ollama) -- semantic extraction. The LLM handles WHAT things
+   mean: which values are test results, what the reference ranges mean, whether
+   something is a lab vs imaging finding. Each document region gets its own focused
+   LLM call (small context = faster + more accurate). Output is schema-constrained
+   (Pydantic JSON) and validation-gated.
 3. **pdfplumber** -- fallback if Docling fails on a PDF.
 
-No regex extractors. No header-guessing heuristics. Docling handles structure,
-the LLM handles meaning. All processing runs locally -- no data leaves the machine.
+No regex extractors. No column-counting heuristics. No deterministic parsers trying
+to replicate what the LLM does. Docling handles spatial layout, the LLM handles
+meaning. When Docling produces a clean structured table grid, a fast deterministic
+parser may be used as an optimization -- but the LLM is the primary extraction path.
+All processing runs locally -- no data leaves the machine.
 
 ### 6. Design for Reprocessing
 
@@ -95,7 +101,7 @@ simple to reason about, trivial to back up, and safe for multi-user (family) use
 | `core/`     | Config, paths, shared types, protocols     | nothing            |
 | `domain/`   | Typed data models and schemas              | nothing            |
 | `ingest/`   | File discovery, hashing, dedup, orchestration | core, domain    |
-| `extract/`  | Document parsing + structured extraction   | core, domain       |
+| `extract/`  | Docling parsing, region grouping, LLM extraction | core, domain  |
 | `validate/` | Validation rules, confidence scoring       | core, domain       |
 | `storage/`  | SQLite read/write, migrations              | core, domain       |
 | `search/`   | FTS5 indexing and query                    | core, domain, storage |
@@ -172,6 +178,9 @@ simple to reason about, trivial to back up, and safe for multi-user (family) use
 - Do not reach for async. The CLI is synchronous. Docling and SQLite are synchronous.
 - Do not store extracted data as JSON blobs in SQLite. Use proper relational tables.
 - Do not skip the validation gate for any extraction path.
+- Do not write deterministic extractors that try to replicate what the LLM does
+  (column counting, header matching, regex patterns). These are brittle and break
+  on real documents. Docling handles spatial layout, the LLM handles meaning.
 
 ---
 
