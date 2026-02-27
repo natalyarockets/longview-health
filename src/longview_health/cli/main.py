@@ -28,3 +28,6 @@ cli.add_command(export)
 cli.add_command(review)
 cli.add_command(model)
 cli.add_command(settings_group, name="settings")
+
+if __name__ == "__main__":
+    cli()

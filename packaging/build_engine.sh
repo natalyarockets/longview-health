@@ -19,8 +19,15 @@ RESOURCES_DIR="$PROJECT_ROOT/macos/LongviewHealth/LongviewHealth/Resources"
 
 cd "$PROJECT_ROOT"
 
+# Use the project venv's pyinstaller if available
+if [ -x ".venv/bin/pyinstaller" ]; then
+    PYINSTALLER=".venv/bin/pyinstaller"
+else
+    PYINSTALLER="pyinstaller"
+fi
+
 echo "==> Building standalone Python engine..."
-pyinstaller packaging/longview.spec \
+"$PYINSTALLER" packaging/longview.spec \
     --distpath dist/ \
     --workpath build/pyinstaller/ \
     --noconfirm

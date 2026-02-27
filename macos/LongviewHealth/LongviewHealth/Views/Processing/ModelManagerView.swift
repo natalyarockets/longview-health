@@ -44,21 +44,32 @@ struct ModelManagerView: View {
             case .needsDownload:
                 VStack(spacing: 16) {
                     Spacer()
-                    Image(systemName: "arrow.down.circle")
+                    Image(systemName: "cpu")
                         .font(.system(size: 48))
                         .foregroundStyle(.secondary)
-                    Text("Longview Health uses a local AI model to extract medical results from your documents.")
+                    Text("Local AI Model")
+                        .font(.title3.weight(.medium))
+                    Text("Longview Health uses a local AI model to accurately extract lab results, imaging findings, and other medical data from your documents. Everything runs on your Mac -- no data leaves your machine.")
                         .multilineTextAlignment(.center)
-                    Text("The model is approximately 2 GB and will be downloaded once.")
+                        .fixedSize(horizontal: false, vertical: true)
+                    Text("If you already have Ollama or another local LLM running, you can skip this and configure it in Settings.")
                         .font(.callout)
                         .foregroundStyle(.secondary)
                         .multilineTextAlignment(.center)
-                    Button("Download Model") {
-                        phase = .downloading
-                        Task { await startDownload() }
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    VStack(spacing: 8) {
+                        Button("Download Recommended Model") {
+                            phase = .downloading
+                            Task { await startDownload() }
+                        }
+                        .buttonStyle(.borderedProminent)
+                        .controlSize(.large)
+
+                        Text("Qwen 2.5 3B Instruct (4-bit) -- approximately 2 GB, downloaded once")
+                            .font(.caption2)
+                            .foregroundStyle(.tertiary)
                     }
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.large)
                     Spacer()
                 }
                 .padding(32)
@@ -124,7 +135,7 @@ struct ModelManagerView: View {
     private var subtitle: String {
         switch phase {
         case .checking: return "Checking..."
-        case .needsDownload: return "Download required"
+        case .needsDownload: return "Setup"
         case .downloading: return "Downloading..."
         case .done: return "Ready"
         case .error: return "Error"
@@ -141,7 +152,7 @@ struct ModelManagerView: View {
             Button("Done") { isPresented = false }
                 .keyboardShortcut(.cancelAction)
         case .needsDownload:
-            Button("Skip") { isPresented = false }
+            Button("I'll use my own model") { isPresented = false }
         default:
             EmptyView()
         }
