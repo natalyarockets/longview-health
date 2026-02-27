@@ -23,19 +23,22 @@ struct ContentView: View {
                 onCreateVault: { showingCreateVault = true }
             )
         } detail: {
-            if let database {
-                switch selectedSection {
-                case .dashboard:
-                    DashboardView(database: database)
-                case .results:
-                    ResultsView(database: database)
-                case .trends:
-                    TrendListView(database: database)
-                case .documents:
-                    DocumentsListView(database: database)
-                case .review:
-                    ReviewView(database: database, vaultName: selectedVault?.name ?? "")
+            if let database, let vault = selectedVault {
+                Group {
+                    switch selectedSection {
+                    case .dashboard:
+                        DashboardView(database: database)
+                    case .results:
+                        ResultsView(database: database)
+                    case .trends:
+                        TrendListView(database: database)
+                    case .documents:
+                        DocumentsListView(database: database)
+                    case .review:
+                        ReviewView(database: database, vaultName: vault.name)
+                    }
                 }
+                .id(vault.name)
             } else {
                 ContentUnavailableView(
                     "No Vault Selected",
