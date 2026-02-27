@@ -184,17 +184,17 @@ def ingest_vault(
         # Build and store document record
         doc = _build_document(vault_name, file_path, file_hash)
 
+        # Insert document record first (needed as FK target for results + review queue)
+        document_store.insert_document(config, vault_name, doc)
+
         try:
             # Parse and extract results
             parsed, raw_results = _parse_and_extract(file_path, doc)
             documents_parsed += 1
 
-            # Validate and triage (rejected → review queue)
+            # Validate and triage (rejected/flagged → review queue)
             validated = _validate_and_triage(config, vault_name, raw_results)
             total_extracted += len(validated)
-
-            # Store document record
-            document_store.insert_document(config, vault_name, doc)
 
             # Index for full-text search
             from longview_health.search.indexer import index_parsed_document
@@ -210,8 +210,6 @@ def ingest_vault(
 
         except Exception as e:
             errors.append(f"{file_path.name}: {e}")
-            # Still record the document so we don't re-attempt on next run
-            document_store.insert_document(config, vault_name, doc)
             if on_file:
                 on_file(file_path.name, f"error: {e}")
 
