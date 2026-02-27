@@ -22,11 +22,9 @@ targets:
     type: application
     platform: macOS
     sources:
-      - LongviewHealth
-    resources:
-      - path: LongviewHealth/Resources/longview-engine
-        optional: true
-        buildPhase: resources
+      - path: LongviewHealth
+        excludes:
+          - Resources/longview-engine/**
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.longviewhealth.app
@@ -39,3 +37,16 @@ targets:
         CODE_SIGN_STYLE: Automatic
     dependencies:
       - package: GRDB
+    preBuildScripts:
+      - name: Copy Longview Engine
+        script: |
+          ENGINE_SRC="${PROJECT_DIR}/LongviewHealth/Resources/longview-engine"
+          ENGINE_DST="${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/Resources/longview-engine"
+          if [ -d "$ENGINE_SRC" ]; then
+            mkdir -p "$(dirname "$ENGINE_DST")"
+            rsync -a --delete "$ENGINE_SRC/" "$ENGINE_DST/"
+            echo "Copied longview-engine to app bundle"
+          else
+            echo "warning: longview-engine not found at $ENGINE_SRC (run packaging/build_engine.sh first)"
+          fi
+        basedOnDependencyAnalysis: false
