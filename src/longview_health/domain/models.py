@@ -165,3 +165,39 @@ class ReviewItem(BaseModel, frozen=True):
     created_at: datetime
     resolved: bool = False
     resolved_at: datetime | None = None
+
+
+# ---------------------------------------------------------------------------
+# Trend analysis
+# ---------------------------------------------------------------------------
+
+
+class TrendPoint(BaseModel, frozen=True):
+    """A single point in a trend series, wrapping a MedicalResult with deltas."""
+
+    result: MedicalResult
+    delta: float | None = None
+    delta_percent: float | None = None
+
+
+class TrendSeries(BaseModel, frozen=True):
+    """Chronological series for one test/finding."""
+
+    test_name: str
+    category: ResultCategory
+    unit: str | None
+    points: list[TrendPoint]
+    latest_value: str
+    is_numeric: bool
+
+
+class TrendReport(BaseModel, frozen=True):
+    """Full trend report for a vault."""
+
+    vault_name: str
+    generated_at: datetime
+    categories: dict[ResultCategory, list[TrendSeries]]
+    total_results: int
+    total_tests: int
+    date_range_start: date | None
+    date_range_end: date | None

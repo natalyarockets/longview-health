@@ -73,6 +73,34 @@ MIGRATIONS: list[tuple[int, str, str]] = [
             USING fts5(document_id, content, tokenize='porter');
         """,
     ),
+    (
+        2,
+        "Drop FK on review_queue.result_id (rejected results have no medical_results row)",
+        """
+        CREATE TABLE IF NOT EXISTS review_queue_new (
+            id TEXT PRIMARY KEY,
+            result_id TEXT NOT NULL,
+            document_id TEXT NOT NULL,
+            test_name TEXT NOT NULL,
+            reason TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            resolved INTEGER NOT NULL DEFAULT 0,
+            resolved_at TEXT,
+            FOREIGN KEY (document_id) REFERENCES documents(id)
+        );
+
+        INSERT OR IGNORE INTO review_queue_new
+            SELECT id, result_id, document_id, test_name, reason,
+                   created_at, resolved, resolved_at
+            FROM review_queue;
+
+        DROP TABLE IF EXISTS review_queue;
+        ALTER TABLE review_queue_new RENAME TO review_queue;
+
+        CREATE INDEX IF NOT EXISTS idx_review_unresolved
+            ON review_queue(resolved) WHERE resolved = 0;
+        """,
+    ),
 ]
 
 
