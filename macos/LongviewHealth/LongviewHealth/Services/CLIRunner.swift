@@ -42,7 +42,10 @@ final class CLIRunner: Sendable {
         return candidates.first { FileManager.default.isExecutableFile(atPath: $0) }
     }
 
-    /// Run a CLI command and stream stdout lines.
+    /// Run a CLI command and stream stdout lines in real time.
+    ///
+    /// Uses incremental reads on the pipe so each line appears as soon as
+    /// the Python process writes it (requires PYTHONUNBUFFERED=1).
     func run(arguments: [String]) -> AsyncStream<String> {
         AsyncStream { continuation in
             let executable = self.findExecutable()
@@ -59,7 +62,7 @@ final class CLIRunner: Sendable {
                 process.executableURL = URL(fileURLWithPath: executable)
                 process.arguments = arguments
 
-                // Inherit PATH so the CLI can find its dependencies
+                // Build environment
                 var env = ProcessInfo.processInfo.environment
                 let home = FileManager.default.homeDirectoryForCurrentUser.path
                 let extraPaths = [
@@ -70,6 +73,10 @@ final class CLIRunner: Sendable {
                 ]
                 let currentPath = env["PATH"] ?? "/usr/bin:/bin"
                 env["PATH"] = (extraPaths + [currentPath]).joined(separator: ":")
+
+                // Force Python to flush stdout on every write so we can stream
+                env["PYTHONUNBUFFERED"] = "1"
+
                 process.environment = env
 
                 let pipe = Pipe()
@@ -84,12 +91,31 @@ final class CLIRunner: Sendable {
                     return
                 }
 
+                // Read incrementally -- yield each line as it arrives
                 let handle = pipe.fileHandleForReading
-                let data = handle.readDataToEndOfFile()
-                if let output = String(data: data, encoding: .utf8) {
-                    for line in output.components(separatedBy: .newlines) where !line.isEmpty {
-                        continuation.yield(line)
+                var buffer = Data()
+
+                while true {
+                    let chunk = handle.availableData
+                    if chunk.isEmpty {
+                        break  // EOF
                     }
+                    buffer.append(chunk)
+
+                    // Split on newlines and yield complete lines
+                    while let newlineRange = buffer.range(of: Data([0x0A])) {
+                        let lineData = buffer.subdata(in: buffer.startIndex..<newlineRange.lowerBound)
+                        buffer.removeSubrange(buffer.startIndex...newlineRange.lowerBound)
+                        if let line = String(data: lineData, encoding: .utf8), !line.isEmpty {
+                            continuation.yield(line)
+                        }
+                    }
+                }
+
+                // Yield any remaining partial line
+                if !buffer.isEmpty, let line = String(data: buffer, encoding: .utf8)?
+                    .trimmingCharacters(in: .newlines), !line.isEmpty {
+                    continuation.yield(line)
                 }
 
                 process.waitUntilExit()
