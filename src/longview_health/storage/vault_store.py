@@ -9,21 +9,40 @@ from pathlib import Path
 
 from longview_health.core.config import AppConfig
 from longview_health.core.errors import VaultExistsError, VaultNotFoundError
-from longview_health.core.paths import vault_db_path, vault_dir, vault_documents_dir
+from longview_health.core.paths import _source_path_file, vault_db_path, vault_dir, vault_documents_dir
 from longview_health.domain.models import Vault
 from longview_health.storage.database import connect
 from longview_health.storage.migrations import run_migrations
 
 
-def create_vault(config: AppConfig, name: str) -> Vault:
-    """Create a new vault with its directory structure and database."""
+def create_vault(
+    config: AppConfig, name: str, *, source_path: Path | None = None
+) -> Vault:
+    """Create a new vault with its directory structure and database.
+
+    Args:
+        config: App configuration.
+        name: Vault name (used as directory name under vault_root).
+        source_path: Optional path to an existing directory of medical documents.
+                     If provided, the vault reads documents from there instead of
+                     creating a new documents/ subdirectory.
+    """
     vdir = vault_dir(config, name)
     if vdir.exists():
         raise VaultExistsError(name)
 
-    # Create directory structure
+    if source_path is not None and not source_path.is_dir():
+        raise FileNotFoundError(f"Source path is not a directory: {source_path}")
+
+    # Create vault metadata directory
     vdir.mkdir(parents=True)
-    vault_documents_dir(config, name).mkdir()
+
+    if source_path is not None:
+        # Record the external source path
+        _source_path_file(config, name).write_text(str(source_path.resolve()))
+    else:
+        # Create a local documents directory
+        vault_documents_dir(config, name).mkdir()
 
     # Initialize database with schema
     db_path = vault_db_path(config, name)
