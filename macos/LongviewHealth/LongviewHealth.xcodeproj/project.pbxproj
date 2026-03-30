@@ -1,0 +1,541 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXBuildFile section */
+		307C0C9DAE16FCEDA162DF1F /* CLIRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8CF85D9C7A1FB2151C53C316 /* CLIRunner.swift */; };
+		315D43F28D2BBCAEDB736947 /* ReviewView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E48A431443714F4AD180450D /* ReviewView.swift */; };
+		33AA380174442DECDE5BB30F /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 874008D6D9D0CB82DC4FBADD /* ContentView.swift */; };
+		4FAAD583FE8975A355D8E3AB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 517B24B3E2086E293FAD12FD /* Assets.xcassets */; };
+		5BC29593DF7089F604A47270 /* ModelManagerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4C7DE012CCF0763EF221CFE9 /* ModelManagerView.swift */; };
+		5FEF3960239A665FD0257D09 /* VaultDatabase.swift in Sources */ = {isa = PBXBuildFile; fileRef = C99158A276EBED4939D7526C /* VaultDatabase.swift */; };
+		75F6E9063FE3B3BE62655A80 /* Document.swift in Sources */ = {isa = PBXBuildFile; fileRef = 721D683D215CC7603E9A2821 /* Document.swift */; };
+		8416F64815603635C1EF4143 /* ResultDetailView.swift in Sources */ = {isa = PBXBuildFile; fileRef = FE9F413E2B1E6825CF88E194 /* ResultDetailView.swift */; };
+		8D807E970F2D73D9966E5758 /* DashboardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2C9D280637F7480815556B0A /* DashboardView.swift */; };
+		91A9039043AA9A81D702624F /* VaultDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2708566F7F753D79B40332C2 /* VaultDiscovery.swift */; };
+		A4D0F4CDBD0B5813BBDB972D /* ResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2EFA7F99C815F7600F4C440E /* ResultsView.swift */; };
+		A61E1D6343F30D77B24A23AD /* LongviewHealthApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A26896DE0B721BF34055D191 /* LongviewHealthApp.swift */; };
+		A6A8788D5EB3DE46384D6A14 /* SidebarView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A5D46C0B4360CF4998366F88 /* SidebarView.swift */; };
+		C273FD516266C66A94CA7DC2 /* Vault.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11F3BBE933BDE08AAB85886D /* Vault.swift */; };
+		CB72854F73985ED60515B414 /* CreateVaultView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A6FB9D7ACE9AB802BF51C440 /* CreateVaultView.swift */; };
+		DA4A0FCC37B258D09228A244 /* TrendListView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4131D1B16BFA588EA05CB330 /* TrendListView.swift */; };
+		DE26BD26DF65ED4F012E0062 /* MedicalResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = 07B7F823BE3BB7658DD86E9F /* MedicalResult.swift */; };
+		E4A0057A7D0743046A6E32EE /* ReviewItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = E2215602942F328A9DA75DD5 /* ReviewItem.swift */; };
+		E654DE13EC18E0755802CD35 /* TrendChartView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0F807D3B146C6215BBCC17C2 /* TrendChartView.swift */; };
+		E85164D65BEBB2104DF66CE0 /* Enums.swift in Sources */ = {isa = PBXBuildFile; fileRef = 44FAD9FF1363AB39A049D8EF /* Enums.swift */; };
+		F41BFA8AA78608883C1E361C /* GRDB in Frameworks */ = {isa = PBXBuildFile; productRef = 4475D2349CA23D214589533E /* GRDB */; };
+		AABB001122334455DEADBEEF /* Theme.swift in Sources */ = {isa = PBXBuildFile; fileRef = AABB001122334455DEADBEE0 /* Theme.swift */; };
+		F546DA50A4400F69923838F2 /* ProcessingView.swift in Sources */ = {isa = PBXBuildFile; fileRef = F636B0D6A368302005FDB3D6 /* ProcessingView.swift */; };
+/* End PBXBuildFile section */
+
+/* Begin PBXFileReference section */
+		07B7F823BE3BB7658DD86E9F /* MedicalResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MedicalResult.swift; sourceTree = "<group>"; };
+		0F807D3B146C6215BBCC17C2 /* TrendChartView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendChartView.swift; sourceTree = "<group>"; };
+		11F3BBE933BDE08AAB85886D /* Vault.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Vault.swift; sourceTree = "<group>"; };
+		2708566F7F753D79B40332C2 /* VaultDiscovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VaultDiscovery.swift; sourceTree = "<group>"; };
+		2C9D280637F7480815556B0A /* DashboardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DashboardView.swift; sourceTree = "<group>"; };
+		2CE1A1F0D2D8632A657EDD42 /* LongviewHealth.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = LongviewHealth.entitlements; sourceTree = "<group>"; };
+		2EFA7F99C815F7600F4C440E /* ResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultsView.swift; sourceTree = "<group>"; };
+		401AA798A98D1D10180FB84C /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		4131D1B16BFA588EA05CB330 /* TrendListView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TrendListView.swift; sourceTree = "<group>"; };
+		44FAD9FF1363AB39A049D8EF /* Enums.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Enums.swift; sourceTree = "<group>"; };
+		4C7DE012CCF0763EF221CFE9 /* ModelManagerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ModelManagerView.swift; sourceTree = "<group>"; };
+		517B24B3E2086E293FAD12FD /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		721D683D215CC7603E9A2821 /* Document.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Document.swift; sourceTree = "<group>"; };
+		874008D6D9D0CB82DC4FBADD /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
+		8CF85D9C7A1FB2151C53C316 /* CLIRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CLIRunner.swift; sourceTree = "<group>"; };
+		A26896DE0B721BF34055D191 /* LongviewHealthApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LongviewHealthApp.swift; sourceTree = "<group>"; };
+		A5D46C0B4360CF4998366F88 /* SidebarView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SidebarView.swift; sourceTree = "<group>"; };
+		A6FB9D7ACE9AB802BF51C440 /* CreateVaultView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CreateVaultView.swift; sourceTree = "<group>"; };
+		C99158A276EBED4939D7526C /* VaultDatabase.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VaultDatabase.swift; sourceTree = "<group>"; };
+		D6A610769CFBAA7F199C7A47 /* LongviewHealth.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = LongviewHealth.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		E2215602942F328A9DA75DD5 /* ReviewItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewItem.swift; sourceTree = "<group>"; };
+		E48A431443714F4AD180450D /* ReviewView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReviewView.swift; sourceTree = "<group>"; };
+		F636B0D6A368302005FDB3D6 /* ProcessingView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProcessingView.swift; sourceTree = "<group>"; };
+		FE9F413E2B1E6825CF88E194 /* ResultDetailView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ResultDetailView.swift; sourceTree = "<group>"; };
+		AABB001122334455DEADBEE0 /* Theme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Theme.swift; sourceTree = "<group>"; };
+/* End PBXFileReference section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		C2D97A232F755FD37F3DF9C3 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				F41BFA8AA78608883C1E361C /* GRDB in Frameworks */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		20F4AB084F76A0C428A3DA81 /* Views */ = {
+			isa = PBXGroup;
+			children = (
+				2C44DEAA7D9802C0C2AA1588 /* Dashboard */,
+				73EC6079D4BA882CF1266F7B /* Processing */,
+				71153FF974E0F3B04B882953 /* Results */,
+				6DA7BB84F6E47BAE998DFCA4 /* Review */,
+				EBB51850201839A3F67FBC56 /* Sidebar */,
+				DF43687DE201BA5F7FF58D65 /* Trends */,
+			);
+			path = Views;
+			sourceTree = "<group>";
+		};
+		2C44DEAA7D9802C0C2AA1588 /* Dashboard */ = {
+			isa = PBXGroup;
+			children = (
+				2C9D280637F7480815556B0A /* DashboardView.swift */,
+			);
+			path = Dashboard;
+			sourceTree = "<group>";
+		};
+		2F22FEF7530E0FE94CBD9048 /* Services */ = {
+			isa = PBXGroup;
+			children = (
+				8CF85D9C7A1FB2151C53C316 /* CLIRunner.swift */,
+			);
+			path = Services;
+			sourceTree = "<group>";
+		};
+		3E036E8F4DE8FD19B5A9618B /* Models */ = {
+			isa = PBXGroup;
+			children = (
+				721D683D215CC7603E9A2821 /* Document.swift */,
+				44FAD9FF1363AB39A049D8EF /* Enums.swift */,
+				07B7F823BE3BB7658DD86E9F /* MedicalResult.swift */,
+				E2215602942F328A9DA75DD5 /* ReviewItem.swift */,
+				11F3BBE933BDE08AAB85886D /* Vault.swift */,
+			);
+			path = Models;
+			sourceTree = "<group>";
+		};
+		6309F1F0AC508EB7C9F39C5B /* LongviewHealth */ = {
+			isa = PBXGroup;
+			children = (
+				517B24B3E2086E293FAD12FD /* Assets.xcassets */,
+				874008D6D9D0CB82DC4FBADD /* ContentView.swift */,
+				401AA798A98D1D10180FB84C /* Info.plist */,
+				2CE1A1F0D2D8632A657EDD42 /* LongviewHealth.entitlements */,
+				A26896DE0B721BF34055D191 /* LongviewHealthApp.swift */,
+				AABB001122334455DEADBEE0 /* Theme.swift */,
+				A47E0812E53A15EBDC903668 /* Database */,
+				3E036E8F4DE8FD19B5A9618B /* Models */,
+				D2F28543D89F8C49E71DEF32 /* Resources */,
+				2F22FEF7530E0FE94CBD9048 /* Services */,
+				20F4AB084F76A0C428A3DA81 /* Views */,
+			);
+			path = LongviewHealth;
+			sourceTree = "<group>";
+		};
+		67D39748C04A811C402B55DB /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				D6A610769CFBAA7F199C7A47 /* LongviewHealth.app */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+		6DA7BB84F6E47BAE998DFCA4 /* Review */ = {
+			isa = PBXGroup;
+			children = (
+				E48A431443714F4AD180450D /* ReviewView.swift */,
+			);
+			path = Review;
+			sourceTree = "<group>";
+		};
+		71153FF974E0F3B04B882953 /* Results */ = {
+			isa = PBXGroup;
+			children = (
+				FE9F413E2B1E6825CF88E194 /* ResultDetailView.swift */,
+				2EFA7F99C815F7600F4C440E /* ResultsView.swift */,
+			);
+			path = Results;
+			sourceTree = "<group>";
+		};
+		73EC6079D4BA882CF1266F7B /* Processing */ = {
+			isa = PBXGroup;
+			children = (
+				4C7DE012CCF0763EF221CFE9 /* ModelManagerView.swift */,
+				F636B0D6A368302005FDB3D6 /* ProcessingView.swift */,
+			);
+			path = Processing;
+			sourceTree = "<group>";
+		};
+		A47E0812E53A15EBDC903668 /* Database */ = {
+			isa = PBXGroup;
+			children = (
+				C99158A276EBED4939D7526C /* VaultDatabase.swift */,
+				2708566F7F753D79B40332C2 /* VaultDiscovery.swift */,
+			);
+			path = Database;
+			sourceTree = "<group>";
+		};
+		BF1EA5DC7831E8A874BC56AA = {
+			isa = PBXGroup;
+			children = (
+				6309F1F0AC508EB7C9F39C5B /* LongviewHealth */,
+				67D39748C04A811C402B55DB /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		D2F28543D89F8C49E71DEF32 /* Resources */ = {
+			isa = PBXGroup;
+			children = (
+			);
+			path = Resources;
+			sourceTree = "<group>";
+		};
+		DF43687DE201BA5F7FF58D65 /* Trends */ = {
+			isa = PBXGroup;
+			children = (
+				0F807D3B146C6215BBCC17C2 /* TrendChartView.swift */,
+				4131D1B16BFA588EA05CB330 /* TrendListView.swift */,
+			);
+			path = Trends;
+			sourceTree = "<group>";
+		};
+		EBB51850201839A3F67FBC56 /* Sidebar */ = {
+			isa = PBXGroup;
+			children = (
+				A6FB9D7ACE9AB802BF51C440 /* CreateVaultView.swift */,
+				A5D46C0B4360CF4998366F88 /* SidebarView.swift */,
+			);
+			path = Sidebar;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		00ACCB9B5766E6A1AE6892D0 /* LongviewHealth */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 15D75DAE37E0B020059A0FDB /* Build configuration list for PBXNativeTarget "LongviewHealth" */;
+			buildPhases = (
+				0F5CDDE904C1A23C742CCBF6 /* Sources */,
+				FB543DA67895426FC0AB9C10 /* Copy Longview Engine */,
+				1A87765706BE8BA0EBEA6E00 /* Resources */,
+				C2D97A232F755FD37F3DF9C3 /* Frameworks */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = LongviewHealth;
+			packageProductDependencies = (
+				4475D2349CA23D214589533E /* GRDB */,
+			);
+			productName = LongviewHealth;
+			productReference = D6A610769CFBAA7F199C7A47 /* LongviewHealth.app */;
+			productType = "com.apple.product-type.application";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		2B0FA3164BB6E159E556DB54 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = YES;
+				LastUpgradeCheck = 1600;
+				TargetAttributes = {
+					00ACCB9B5766E6A1AE6892D0 = {
+						ProvisioningStyle = Automatic;
+					};
+				};
+			};
+			buildConfigurationList = B9A71E56B9B06E7DE3B8138C /* Build configuration list for PBXProject "LongviewHealth" */;
+			compatibilityVersion = "Xcode 14.0";
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				Base,
+				en,
+			);
+			mainGroup = BF1EA5DC7831E8A874BC56AA;
+			minimizedProjectReferenceProxies = 1;
+			packageReferences = (
+				D8A6391D153E546CC7A521BC /* XCRemoteSwiftPackageReference "GRDB.swift" */,
+			);
+			preferredProjectObjectVersion = 77;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				00ACCB9B5766E6A1AE6892D0 /* LongviewHealth */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		1A87765706BE8BA0EBEA6E00 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				4FAAD583FE8975A355D8E3AB /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXShellScriptBuildPhase section */
+		FB543DA67895426FC0AB9C10 /* Copy Longview Engine */ = {
+			isa = PBXShellScriptBuildPhase;
+			alwaysOutOfDate = 1;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			inputFileListPaths = (
+			);
+			inputPaths = (
+			);
+			name = "Copy Longview Engine";
+			outputFileListPaths = (
+			);
+			outputPaths = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+			shellPath = /bin/sh;
+			shellScript = "ENGINE_SRC=\"${PROJECT_DIR}/LongviewHealth/Resources/longview-engine\"\nENGINE_DST=\"${BUILT_PRODUCTS_DIR}/${CONTENTS_FOLDER_PATH}/Resources/longview-engine\"\nif [ -d \"$ENGINE_SRC\" ]; then\n  mkdir -p \"$(dirname \"$ENGINE_DST\")\"\n  rsync -a --delete \"$ENGINE_SRC/\" \"$ENGINE_DST/\"\n  echo \"Copied longview-engine to app bundle\"\nelse\n  echo \"warning: longview-engine not found at $ENGINE_SRC (run packaging/build_engine.sh first)\"\nfi\n";
+		};
+/* End PBXShellScriptBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		0F5CDDE904C1A23C742CCBF6 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				307C0C9DAE16FCEDA162DF1F /* CLIRunner.swift in Sources */,
+				33AA380174442DECDE5BB30F /* ContentView.swift in Sources */,
+				CB72854F73985ED60515B414 /* CreateVaultView.swift in Sources */,
+				8D807E970F2D73D9966E5758 /* DashboardView.swift in Sources */,
+				75F6E9063FE3B3BE62655A80 /* Document.swift in Sources */,
+				E85164D65BEBB2104DF66CE0 /* Enums.swift in Sources */,
+				A61E1D6343F30D77B24A23AD /* LongviewHealthApp.swift in Sources */,
+				DE26BD26DF65ED4F012E0062 /* MedicalResult.swift in Sources */,
+				5BC29593DF7089F604A47270 /* ModelManagerView.swift in Sources */,
+				F546DA50A4400F69923838F2 /* ProcessingView.swift in Sources */,
+				8416F64815603635C1EF4143 /* ResultDetailView.swift in Sources */,
+				A4D0F4CDBD0B5813BBDB972D /* ResultsView.swift in Sources */,
+				E4A0057A7D0743046A6E32EE /* ReviewItem.swift in Sources */,
+				315D43F28D2BBCAEDB736947 /* ReviewView.swift in Sources */,
+				A6A8788D5EB3DE46384D6A14 /* SidebarView.swift in Sources */,
+				E654DE13EC18E0755802CD35 /* TrendChartView.swift in Sources */,
+				DA4A0FCC37B258D09228A244 /* TrendListView.swift in Sources */,
+				C273FD516266C66A94CA7DC2 /* Vault.swift in Sources */,
+				5FEF3960239A665FD0257D09 /* VaultDatabase.swift in Sources */,
+				AABB001122334455DEADBEEF /* Theme.swift in Sources */,
+				91A9039043AA9A81D702624F /* VaultDiscovery.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin XCBuildConfiguration section */
+		2EB92BF3AFE73DCFFC4769F5 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_OPTIMIZATION_LEVEL = "-O";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Release;
+		};
+		9C292A4E8BDE02A717269F71 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++14";
+				CLANG_CXX_LIBRARY = "libc++";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu11;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"$(inherited)",
+					"DEBUG=1",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = DEBUG;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+				SWIFT_STRICT_CONCURRENCY = complete;
+				SWIFT_VERSION = 6.0;
+			};
+			name = Debug;
+		};
+		EFBF081F30876E4D4D056ED8 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = LongviewHealth/LongviewHealth.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = LongviewHealth/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.longviewhealth.app;
+				PRODUCT_NAME = "Longview Health";
+				SDKROOT = macosx;
+			};
+			name = Release;
+		};
+		F614D4CF36DD7D918C98E16F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				CODE_SIGN_ENTITLEMENTS = LongviewHealth/LongviewHealth.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = NO;
+				INFOPLIST_FILE = LongviewHealth/Info.plist;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.longviewhealth.app;
+				PRODUCT_NAME = "Longview Health";
+				SDKROOT = macosx;
+			};
+			name = Debug;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		15D75DAE37E0B020059A0FDB /* Build configuration list for PBXNativeTarget "LongviewHealth" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				F614D4CF36DD7D918C98E16F /* Debug */,
+				EFBF081F30876E4D4D056ED8 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		B9A71E56B9B06E7DE3B8138C /* Build configuration list for PBXProject "LongviewHealth" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				9C292A4E8BDE02A717269F71 /* Debug */,
+				2EB92BF3AFE73DCFFC4769F5 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+/* End XCConfigurationList section */
+
+/* Begin XCRemoteSwiftPackageReference section */
+		D8A6391D153E546CC7A521BC /* XCRemoteSwiftPackageReference "GRDB.swift" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/groue/GRDB.swift";
+			requirement = {
+				kind = upToNextMajorVersion;
+				minimumVersion = 7.0.0;
+			};
+		};
+/* End XCRemoteSwiftPackageReference section */
+
+/* Begin XCSwiftPackageProductDependency section */
+		4475D2349CA23D214589533E /* GRDB */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = D8A6391D153E546CC7A521BC /* XCRemoteSwiftPackageReference "GRDB.swift" */;
+			productName = GRDB;
+		};
+/* End XCSwiftPackageProductDependency section */
+	};
+	rootObject = 2B0FA3164BB6E159E556DB54 /* Project object */;
+}

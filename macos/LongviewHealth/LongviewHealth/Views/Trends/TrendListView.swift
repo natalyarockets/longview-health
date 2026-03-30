@@ -5,9 +5,10 @@ struct TrendListView: View {
 
     @State private var testsByCategory: [(category: ResultCategory, tests: [String])] = []
     @State private var selectedTest: String?
+    @State private var allResults: [String: [MedicalResult]] = [:]
 
     var body: some View {
-        HSplitView {
+        HStack(spacing: 0) {
             // Left: test list grouped by category
             List(selection: $selectedTest) {
                 ForEach(testsByCategory, id: \.category) { group in
@@ -20,18 +21,34 @@ struct TrendListView: View {
                 }
             }
             .listStyle(.sidebar)
-            .frame(minWidth: 180, idealWidth: 220, maxWidth: 280)
+            .frame(width: 220)
 
-            // Right: chart for selected test
-            if let test = selectedTest {
-                TrendChartView(database: database, testName: test)
-            } else {
-                ContentUnavailableView(
-                    "Select a Test",
-                    systemImage: "chart.xyaxis.line",
-                    description: Text("Choose a test from the list to see its trend over time.")
-                )
+            Divider()
+
+            // Right: all test charts in a scrollable view
+            ScrollViewReader { proxy in
+                ScrollView {
+                    LazyVStack(alignment: .leading, spacing: 32) {
+                        ForEach(testsByCategory, id: \.category) { group in
+                            ForEach(group.tests, id: \.self) { test in
+                                TrendChartView(
+                                    database: database,
+                                    testName: test
+                                )
+                                .id(test)
+                            }
+                        }
+                    }
+                    .padding(.bottom, 24)
+                }
+                .onChange(of: selectedTest) { _, newTest in
+                    guard let test = newTest else { return }
+                    withAnimation {
+                        proxy.scrollTo(test, anchor: .top)
+                    }
+                }
             }
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
         }
         .navigationTitle("Trends")
         .task { loadTests() }

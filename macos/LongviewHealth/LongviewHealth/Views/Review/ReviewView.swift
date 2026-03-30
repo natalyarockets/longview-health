@@ -12,53 +12,23 @@ struct ReviewView: View {
         Group {
             if items.isEmpty {
                 ContentUnavailableView(
-                    "No Pending Reviews",
-                    systemImage: "checkmark.circle",
-                    description: Text("All items have been reviewed.")
+                    "All Clear",
+                    systemImage: "checkmark.seal",
+                    description: Text("Every result has been reviewed.")
                 )
             } else {
-                List(items, selection: $selectedItem) { item in
-                    VStack(alignment: .leading, spacing: 6) {
-                        HStack {
-                            Text(item.testName)
-                                .font(.body.weight(.medium))
-                            Spacer()
-                            Text(item.formattedDate)
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                        }
-
-                        Text(item.reason)
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
-                            .lineLimit(2)
-
-                        HStack(spacing: 8) {
-                            Text("Doc: \(String(item.documentId.prefix(8)))...")
-                                .font(.caption2)
-                                .foregroundStyle(.tertiary)
-
-                            Spacer()
-
-                            Button("Accept") {
-                                Task { await acceptItem(item) }
-                            }
-                            .buttonStyle(.borderedProminent)
-                            .tint(.green)
-                            .controlSize(.small)
-                            .disabled(isProcessing)
-
-                            Button("Reject") {
-                                Task { await rejectItem(item) }
-                            }
-                            .buttonStyle(.bordered)
-                            .tint(.red)
-                            .controlSize(.small)
-                            .disabled(isProcessing)
+                ScrollView {
+                    LazyVStack(spacing: 10) {
+                        ForEach(items) { item in
+                            ReviewCard(
+                                item: item,
+                                isProcessing: isProcessing,
+                                onAccept: { Task { await acceptItem(item) } },
+                                onReject: { Task { await rejectItem(item) } }
+                            )
                         }
                     }
-                    .padding(.vertical, 4)
-                    .tag(item)
+                    .padding(20)
                 }
             }
         }
@@ -82,5 +52,53 @@ struct ReviewView: View {
         defer { isProcessing = false }
         _ = try? await CLIRunner.shared.reviewReject(vaultName: vaultName, reviewId: item.id)
         loadItems()
+    }
+}
+
+private struct ReviewCard: View {
+    let item: ReviewItem
+    let isProcessing: Bool
+    let onAccept: () -> Void
+    let onReject: () -> Void
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(alignment: .firstTextBaseline) {
+                Text(item.testName)
+                    .font(.body.weight(.semibold))
+                Spacer()
+                Text(item.formattedDate)
+                    .font(.caption)
+                    .foregroundStyle(.secondary)
+            }
+
+            Text(item.reason)
+                .font(.callout)
+                .foregroundStyle(.secondary)
+                .lineLimit(3)
+
+            HStack {
+                Spacer()
+
+                Button(action: onReject) {
+                    Label("Reject", systemImage: "xmark")
+                        .font(.callout)
+                }
+                .buttonStyle(.bordered)
+                .tint(Theme.critical)
+                .controlSize(.small)
+                .disabled(isProcessing)
+
+                Button(action: onAccept) {
+                    Label("Accept", systemImage: "checkmark")
+                        .font(.callout)
+                }
+                .buttonStyle(.borderedProminent)
+                .tint(Theme.positive)
+                .controlSize(.small)
+                .disabled(isProcessing)
+            }
+        }
+        .cardStyle()
     }
 }

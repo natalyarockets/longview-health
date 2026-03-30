@@ -131,25 +131,53 @@ struct DocumentsListView: View {
     @State private var documents: [Document] = []
 
     var body: some View {
-        List(documents) { doc in
-            VStack(alignment: .leading, spacing: 4) {
-                Text(doc.filename)
-                    .font(.body)
-                HStack(spacing: 12) {
-                    Text(doc.documentType.uppercased())
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
-                    if let pages = doc.pageCount {
-                        Text("\(pages) page\(pages == 1 ? "" : "s")")
-                            .font(.caption)
-                            .foregroundStyle(.secondary)
+        Group {
+            if documents.isEmpty {
+                ContentUnavailableView(
+                    "No Documents",
+                    systemImage: "doc.on.doc",
+                    description: Text("Scan a vault to import documents.")
+                )
+            } else {
+                ScrollView {
+                    LazyVStack(spacing: 8) {
+                        ForEach(documents) { doc in
+                            HStack(spacing: 12) {
+                                Image(systemName: "doc.fill")
+                                    .font(.title3)
+                                    .foregroundStyle(Theme.accent)
+                                    .frame(width: 28)
+
+                                VStack(alignment: .leading, spacing: 3) {
+                                    Text(doc.filename)
+                                        .font(.body.weight(.medium))
+                                        .lineLimit(1)
+                                    HStack(spacing: 10) {
+                                        Text(doc.documentType.uppercased())
+                                            .font(.caption.weight(.medium))
+                                            .foregroundStyle(Theme.accent)
+                                        if let pages = doc.pageCount {
+                                            Text("\(pages) page\(pages == 1 ? "" : "s")")
+                                                .font(.caption)
+                                                .foregroundStyle(.secondary)
+                                        }
+                                    }
+                                }
+                                Spacer()
+
+                                Text(formatIngestedDate(doc.ingestedAt))
+                                    .font(.caption)
+                                    .foregroundStyle(.secondary)
+                            }
+                            .cardStyle()
+                            .onTapGesture(count: 2) {
+                                openDocument(doc)
+                            }
+                        }
                     }
-                    Text(doc.ingestedAt.prefix(10))
-                        .font(.caption)
-                        .foregroundStyle(.secondary)
+                    .padding(20)
                 }
             }
-            .padding(.vertical, 2)
         }
         .navigationTitle("Documents")
         .task { loadDocuments() }
@@ -157,5 +185,21 @@ struct DocumentsListView: View {
 
     private func loadDocuments() {
         documents = (try? database.fetchDocuments()) ?? []
+    }
+
+    private func openDocument(_ doc: Document) {
+        let url = URL(fileURLWithPath: doc.filePath)
+        NSWorkspace.shared.open(url)
+    }
+
+    private func formatIngestedDate(_ iso: String) -> String {
+        let formatter = ISO8601DateFormatter()
+        formatter.formatOptions = [.withFullDate]
+        if let date = formatter.date(from: String(iso.prefix(10))) {
+            let display = DateFormatter()
+            display.dateStyle = .medium
+            return display.string(from: date)
+        }
+        return String(iso.prefix(10))
     }
 }

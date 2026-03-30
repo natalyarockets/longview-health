@@ -8,8 +8,13 @@ struct ResultDetailView: View {
         VStack(alignment: .leading, spacing: 0) {
             // Header
             HStack {
-                Text(result.testName)
-                    .font(.title3.weight(.semibold))
+                VStack(alignment: .leading, spacing: 2) {
+                    Text(result.testName)
+                        .font(Theme.largeTitleFont)
+                    Text(result.category.displayName)
+                        .font(.callout)
+                        .foregroundStyle(.secondary)
+                }
                 Spacer()
                 Button("Done") { dismiss() }
                     .keyboardShortcut(.cancelAction)
@@ -19,68 +24,71 @@ struct ResultDetailView: View {
             Divider()
 
             ScrollView {
-                Grid(alignment: .leading, horizontalSpacing: 24, verticalSpacing: 12) {
-                    detailRow("Value", content: {
-                        HStack(spacing: 4) {
-                            Text(result.value)
-                                .font(.body.monospacedDigit().weight(.medium))
-                            if let unit = result.unit {
-                                Text(unit)
-                                    .foregroundStyle(.secondary)
-                            }
-                            if result.isAbnormal == true {
-                                Text("abnormal")
-                                    .font(.caption.weight(.medium))
-                                    .padding(.horizontal, 6)
-                                    .padding(.vertical, 2)
-                                    .background(Color.abnormalBackground)
-                                    .foregroundStyle(.red)
-                                    .clipShape(RoundedRectangle(cornerRadius: 4))
-                            }
+                VStack(alignment: .leading, spacing: 16) {
+                    // Value highlight
+                    HStack(spacing: 8) {
+                        Text(result.value)
+                            .font(.system(.title, design: .rounded, weight: .semibold))
+                            .monospacedDigit()
+                        if let unit = result.unit {
+                            Text(unit)
+                                .font(.title3)
+                                .foregroundStyle(.secondary)
                         }
-                    })
-
-                    if let range = result.referenceRange {
-                        detailRow("Reference Range", text: range)
+                        if result.isAbnormal == true {
+                            StatusBadge("Abnormal")
+                        }
                     }
+                    .padding(16)
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .background(
+                        result.isAbnormal == true
+                            ? Theme.attentionTint
+                            : Theme.accentTint
+                    )
+                    .clipShape(RoundedRectangle(cornerRadius: 8, style: .continuous))
 
-                    detailRow("Date", text: result.formattedDate)
+                    // Detail rows
+                    VStack(spacing: 0) {
+                        if let range = result.referenceRange {
+                            DetailRow(label: "Reference Range", value: range)
+                            Divider().padding(.leading, 120)
+                        }
+                        DetailRow(label: "Date", value: result.formattedDate)
+                        Divider().padding(.leading, 120)
+                        DetailRow(label: "Confidence", value: result.confidence.rawValue.capitalized)
+                        Divider().padding(.leading, 120)
+                        DetailRow(label: "Validation", value: result.validationStatus.rawValue.capitalized)
+                        Divider().padding(.leading, 120)
+                        DetailRow(label: "Extractor", value: "v\(result.extractorVersion) (\(result.parserUsed))")
 
-                    detailRow("Category", content: {
-                        Label(result.category.displayName, systemImage: result.category.systemImage)
-                    })
-
-                    detailRow("Confidence", text: result.confidence.rawValue.capitalized)
-
-                    detailRow("Validation", text: result.validationStatus.rawValue.capitalized)
-
-                    detailRow("Extractor", text: "v\(result.extractorVersion) (\(result.parserUsed))")
-
-                    detailRow("Document ID", text: String(result.documentId.prefix(12)) + "...")
-
-                    if let notes = result.notes, !notes.isEmpty {
-                        detailRow("Notes", text: notes)
+                        if let notes = result.notes, !notes.isEmpty {
+                            Divider().padding(.leading, 120)
+                            DetailRow(label: "Notes", value: notes)
+                        }
                     }
                 }
                 .padding(20)
             }
         }
-        .frame(minWidth: 400, idealWidth: 450, minHeight: 350)
+        .frame(minWidth: 420, idealWidth: 480, minHeight: 380)
     }
+}
 
-    private func detailRow(_ label: String, text: String) -> some View {
-        detailRow(label) {
-            Text(text)
-        }
-    }
+private struct DetailRow: View {
+    let label: String
+    let value: String
 
-    private func detailRow<Content: View>(_ label: String, @ViewBuilder content: () -> Content) -> some View {
-        GridRow {
+    var body: some View {
+        HStack(alignment: .firstTextBaseline) {
             Text(label)
-                .font(.caption)
+                .font(.callout)
                 .foregroundStyle(.secondary)
                 .frame(width: 110, alignment: .trailing)
-            content()
+            Text(value)
+                .font(.body)
+            Spacer()
         }
+        .padding(.vertical, 8)
     }
 }

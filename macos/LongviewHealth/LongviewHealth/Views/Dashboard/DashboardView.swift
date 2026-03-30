@@ -10,7 +10,7 @@ import SwiftUI
             dateRange: (earliest: "2023-06-14", latest: "2025-01-15")
         )
     }
-    .frame(width: 600, height: 500)
+    .frame(width: 700, height: 560)
 }
 
 struct DashboardView: View {
@@ -50,66 +50,87 @@ struct DashboardView: View {
 
     var body: some View {
         ScrollView {
-            VStack(alignment: .leading, spacing: 24) {
+            VStack(alignment: .leading, spacing: 20) {
                 // Summary cards
                 LazyVGrid(columns: [
                     GridItem(.flexible()),
                     GridItem(.flexible()),
                     GridItem(.flexible()),
-                ], spacing: 16) {
+                ], spacing: 12) {
                     SummaryCard(
                         title: "Documents",
                         value: "\(documentCount)",
-                        systemImage: "doc.on.doc"
+                        systemImage: "doc.on.doc",
+                        color: Theme.accent
                     )
                     SummaryCard(
                         title: "Results",
                         value: "\(resultCount)",
-                        systemImage: "list.bullet.clipboard"
+                        systemImage: "list.bullet.clipboard",
+                        color: Theme.positive
                     )
                     SummaryCard(
                         title: "Pending Review",
                         value: "\(pendingReviewCount)",
                         systemImage: "checkmark.circle",
-                        highlight: pendingReviewCount > 0
+                        color: pendingReviewCount > 0 ? Theme.attention : .secondary
                     )
                 }
 
                 // Date range
                 if let range = dateRange {
-                    GroupBox("Date Range") {
-                        HStack {
+                    VStack(alignment: .leading, spacing: 8) {
+                        Label("Date Range", systemImage: "calendar")
+                            .font(Theme.sectionHeaderFont)
+                            .foregroundStyle(.secondary)
+
+                        HStack(spacing: 12) {
                             Text(formatDateString(range.earliest))
+                                .font(.body.weight(.medium))
                             Image(systemName: "arrow.right")
-                                .foregroundStyle(.secondary)
+                                .font(.caption)
+                                .foregroundStyle(.tertiary)
                             Text(formatDateString(range.latest))
+                                .font(.body.weight(.medium))
                             Spacer()
                         }
-                        .font(.body)
-                        .padding(.top, 4)
+                        .padding(14)
+                        .cardStyle(padding: 0)
+                        .padding(.horizontal, 14)
                     }
                 }
 
                 // Results by category
                 if !categoryCounts.isEmpty {
-                    GroupBox("Results by Category") {
-                        VStack(alignment: .leading, spacing: 8) {
-                            ForEach(ResultCategory.allCases, id: \.self) { cat in
-                                if let count = categoryCounts[cat], count > 0 {
-                                    HStack {
-                                        Image(systemName: cat.systemImage)
-                                            .frame(width: 20)
-                                            .foregroundStyle(.secondary)
-                                        Text(cat.displayName)
-                                        Spacer()
-                                        Text("\(count)")
-                                            .foregroundStyle(.secondary)
-                                            .monospacedDigit()
-                                    }
+                    VStack(alignment: .leading, spacing: 8) {
+                        Label("Results by Category", systemImage: "square.stack.3d.up")
+                            .font(Theme.sectionHeaderFont)
+                            .foregroundStyle(.secondary)
+
+                        VStack(spacing: 0) {
+                            ForEach(Array(sortedCategories.enumerated()), id: \.element.category) { index, item in
+                                HStack(spacing: 12) {
+                                    Image(systemName: item.category.systemImage)
+                                        .font(.body)
+                                        .foregroundStyle(Theme.accent)
+                                        .frame(width: 24)
+                                    Text(item.category.displayName)
+                                        .font(.body)
+                                    Spacer()
+                                    Text("\(item.count)")
+                                        .font(.body.monospacedDigit().weight(.medium))
+                                        .foregroundStyle(.secondary)
+                                }
+                                .padding(.vertical, 10)
+                                .padding(.horizontal, 14)
+
+                                if index < sortedCategories.count - 1 {
+                                    Divider()
+                                        .padding(.leading, 50)
                                 }
                             }
                         }
-                        .padding(.top, 4)
+                        .cardStyle(padding: 0)
                     }
                 }
             }
@@ -117,6 +138,13 @@ struct DashboardView: View {
         }
         .navigationTitle("Dashboard")
         .task { loadData() }
+    }
+
+    private var sortedCategories: [(category: ResultCategory, count: Int)] {
+        ResultCategory.allCases.compactMap { cat in
+            guard let count = categoryCounts[cat], count > 0 else { return nil }
+            return (category: cat, count: count)
+        }
     }
 
     private func loadData() {
@@ -145,23 +173,24 @@ private struct SummaryCard: View {
     let title: String
     let value: String
     let systemImage: String
-    var highlight: Bool = false
+    var color: Color = Theme.accent
 
     var body: some View {
-        GroupBox {
-            VStack(spacing: 8) {
-                Image(systemName: systemImage)
-                    .font(.title2)
-                    .foregroundStyle(highlight ? .red : .accentColor)
-                Text(value)
-                    .font(.system(.title, design: .rounded, weight: .semibold))
-                    .monospacedDigit()
-                Text(title)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
-            }
-            .frame(maxWidth: .infinity)
-            .padding(.vertical, 8)
+        VStack(spacing: 10) {
+            Image(systemName: systemImage)
+                .font(.title2)
+                .foregroundStyle(color)
+
+            Text(value)
+                .font(Theme.metricFont)
+                .monospacedDigit()
+                .foregroundStyle(.primary)
+
+            Text(title)
+                .font(Theme.captionFont)
+                .foregroundStyle(.secondary)
         }
+        .frame(maxWidth: .infinity)
+        .cardStyle()
     }
 }

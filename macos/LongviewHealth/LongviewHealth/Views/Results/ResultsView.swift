@@ -35,20 +35,20 @@ struct ResultsView: View {
                     Text("All Categories")
                         .tag(nil as ResultCategory?)
                     ForEach(ResultCategory.allCases) { cat in
-                        Text(cat.displayName)
+                        Label(cat.displayName, systemImage: cat.systemImage)
                             .tag(cat as ResultCategory?)
                     }
                 }
-                .frame(width: 160)
+                .frame(width: 170)
 
                 TextField("Search tests...", text: $searchText)
                     .textFieldStyle(.roundedBorder)
-                    .frame(maxWidth: 200)
+                    .frame(maxWidth: 220)
 
                 Spacer()
 
                 Text("\(filteredResults.count) results")
-                    .font(.caption)
+                    .font(Theme.captionFont)
                     .foregroundStyle(.secondary)
             }
             .padding(.horizontal, 16)
@@ -97,16 +97,10 @@ struct ResultsView: View {
 
                 TableColumn("Flag") { result in
                     if result.isAbnormal == true {
-                        Text("abnormal")
-                            .font(.caption.weight(.medium))
-                            .padding(.horizontal, 6)
-                            .padding(.vertical, 2)
-                            .background(Color.abnormalBackground)
-                            .foregroundStyle(.red)
-                            .clipShape(RoundedRectangle(cornerRadius: 4))
+                        StatusBadge("Abnormal")
                     }
                 }
-                .width(min: 60, ideal: 80)
+                .width(min: 70, ideal: 90)
 
                 TableColumn("Category", value: \.category.rawValue) { result in
                     Label(result.category.displayName, systemImage: result.category.systemImage)
@@ -132,9 +126,4 @@ struct ResultsView: View {
     private func loadResults() {
         results = (try? database.fetchResults()) ?? []
     }
-}
-
-extension Color {
-    /// Subtle warm tint for abnormal results.
-    static let abnormalBackground = Color(red: 1.0, green: 0.878, blue: 0.878)
 }
