@@ -77,6 +77,11 @@ final class CLIRunner: Sendable {
                 // Force Python to flush stdout on every write so we can stream
                 env["PYTHONUNBUFFERED"] = "1"
 
+                // Disable Metal shader validation -- Xcode enables it in Debug
+                // builds which triggers assertions in MLX's Metal kernels.
+                env["MTL_SHADER_VALIDATION"] = "0"
+                env["MTL_DEBUG_LAYER"] = "0"
+
                 process.environment = env
 
                 let pipe = Pipe()

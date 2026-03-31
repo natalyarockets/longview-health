@@ -9,136 +9,101 @@ Build with:
     pyinstaller packaging/longview.spec --distpath dist/
 """
 
-import sys
 from pathlib import Path
-from PyInstaller.utils.hooks import copy_metadata, collect_data_files, collect_submodules
+from PyInstaller.utils.hooks import (
+    collect_data_files,
+    collect_submodules,
+    copy_metadata,
+)
 
-block_cipher = None
-
-# Project root (one level up from packaging/)
 project_root = Path(SPECPATH).parent
 
-# Collect package metadata that importlib.metadata needs at runtime.
-# Docling and its ecosystem use metadata for version checks and entry points.
-_metadata_packages = [
+# ---------------------------------------------------------------------------
+# Data files: package metadata (dist-info), resource dirs, Metal shaders
+# ---------------------------------------------------------------------------
+
+_datas = []
+
+# Package metadata required by importlib.metadata at runtime.
+# Only list packages that actually call importlib.metadata on themselves
+# or are looked up by other packages via entry points / version checks.
+for pkg in [
     "docling",
     "docling_core",
     "docling_ibm_models",
     "docling_parse",
     "deepsearch_glm",
-    "pydantic",
-    "pydantic_core",
     "huggingface_hub",
     "transformers",
     "tokenizers",
-    "mlx",
-    "mlx_lm",
-    "pdfplumber",
-    "reportlab",
-    "httpx",
-]
-
-_datas = []
-for pkg in _metadata_packages:
+    "pydantic",
+    "pydantic_core",
+]:
     try:
         _datas += copy_metadata(pkg)
     except Exception:
-        pass  # Skip packages not installed
+        pass
 
-# Collect data files (model configs, pdf resources, etc.)
-for _pkg in ["docling", "docling_core", "docling_parse", "deepsearch_glm"]:
+# Resource files: PDF parsing resources, model configs, Metal shaders.
+for pkg in ["docling", "docling_core", "docling_parse", "deepsearch_glm"]:
     try:
-        _datas += collect_data_files(_pkg)
+        _datas += collect_data_files(pkg)
     except Exception:
         pass
+
+# MLX Metal shader library (mlx.metallib) -- required for GPU inference.
+try:
+    _datas += collect_data_files("mlx", include_py_files=False)
+except Exception:
+    pass
+
+# ---------------------------------------------------------------------------
+# Hidden imports: dynamically-imported submodules
+# ---------------------------------------------------------------------------
+
+_hidden = []
+
+# Packages with heavy use of dynamic imports, plugins, or lazy loading.
+# collect_submodules ensures PyInstaller finds everything.
+for pkg in [
+    "longview_health",  # Our own code (auto-tracks new modules)
+    "docling",
+    "docling_core",
+    "docling_parse",
+    "mlx",
+    "mlx_lm",
+    "transformers",
+    "huggingface_hub",
+    "pydantic",
+    "pydantic_core",
+]:
+    try:
+        _hidden += collect_submodules(pkg)
+    except Exception:
+        pass
+
+# Packages whose top-level import is sufficient (no dynamic submodules).
+_hidden += [
+    "tokenizers",
+    "pdfplumber",
+    "reportlab",
+    "click",
+    "httpx",
+]
+
+# ---------------------------------------------------------------------------
+# Analysis
+# ---------------------------------------------------------------------------
 
 a = Analysis(
     [str(project_root / "src" / "longview_health" / "cli" / "main.py")],
     pathex=[str(project_root / "src")],
     binaries=[],
-    datas=_datas + collect_data_files("mlx", include_py_files=False),
-    hiddenimports=[
-        # Docling -- collect ALL submodules dynamically (plugins, models, etc.)
-        *collect_submodules("docling"),
-        *collect_submodules("docling_core"),
-        *collect_submodules("docling_parse"),
-        # MLX -- collect all submodules
-        *collect_submodules("mlx"),
-        *collect_submodules("mlx_lm"),
-        # Transformers (used by mlx-lm for tokenizer)
-        "transformers",
-        "tokenizers",
-        # huggingface_hub
-        "huggingface_hub",
-        "huggingface_hub.utils",
-        # Pydantic
-        "pydantic",
-        "pydantic.deprecated",
-        "pydantic_core",
-        # Other
-        "pdfplumber",
-        "reportlab",
-        "click",
-        "httpx",
-        # All longview_health submodules
-        "longview_health",
-        "longview_health.cli",
-        "longview_health.cli.main",
-        "longview_health.cli.vault",
-        "longview_health.cli.rescan",
-        "longview_health.cli.search",
-        "longview_health.cli.results",
-        "longview_health.cli.trend",
-        "longview_health.cli.export",
-        "longview_health.cli.review",
-        "longview_health.cli.model",
-        "longview_health.cli.settings",
-        "longview_health.core",
-        "longview_health.core.config",
-        "longview_health.core.paths",
-        "longview_health.core.errors",
-        "longview_health.core.protocols",
-        "longview_health.domain",
-        "longview_health.domain.models",
-        "longview_health.domain.enums",
-        "longview_health.domain.identifiers",
-        "longview_health.extract",
-        "longview_health.extract.llm_extractor",
-        "longview_health.extract.mlx_extractor",
-        "longview_health.extract.extraction_chain",
-        "longview_health.extract.docling_parser",
-        "longview_health.extract.parser_chain",
-        "longview_health.extract.pdf_parser",
-        "longview_health.extract.table_parser",
-        "longview_health.extract.region_grouper",
-        "longview_health.extract.result_merger",
-        "longview_health.extract.section_router",
-        "longview_health.ingest",
-        "longview_health.ingest.enumerator",
-        "longview_health.ingest.orchestrator",
-        "longview_health.storage",
-        "longview_health.storage.database",
-        "longview_health.storage.document_store",
-        "longview_health.storage.results_store",
-        "longview_health.storage.review_store",
-        "longview_health.storage.search_store",
-        "longview_health.storage.vault_store",
-        "longview_health.storage.migrations",
-        "longview_health.search",
-        "longview_health.search.indexer",
-        "longview_health.trends",
-        "longview_health.trends.engine",
-        "longview_health.trends.export",
-        "longview_health.validate",
-        "longview_health.validate.engine",
-        "longview_health.validate.rules",
-        "longview_health.validate.confidence",
-        "longview_health.review",
-        "longview_health.review.queue",
-    ],
+    datas=_datas,
+    hiddenimports=_hidden,
     hookspath=[],
     hooksconfig={},
-    runtime_hooks=[],
+    runtime_hooks=[str(project_root / "packaging" / "pyi_rth_multiprocessing.py")],
     excludes=[
         "pytest",
         "pytest_tmp_files",
@@ -150,7 +115,7 @@ a = Analysis(
     optimize=0,
 )
 
-pyz = PYZ(a.pure, a.zipped_data, cipher=block_cipher)
+pyz = PYZ(a.pure, a.zipped_data)
 
 exe = EXE(
     pyz,
