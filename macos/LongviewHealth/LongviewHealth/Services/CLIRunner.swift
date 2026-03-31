@@ -79,8 +79,18 @@ final class CLIRunner: Sendable {
 
                 // Disable Metal shader validation -- Xcode enables it in Debug
                 // builds which triggers assertions in MLX's Metal kernels.
+                // Remove all Metal debug keys inherited from the parent process,
+                // then explicitly disable validation.
+                for key in env.keys where key.hasPrefix("MTL_") || key.hasPrefix("METAL_") {
+                    env.removeValue(forKey: key)
+                }
                 env["MTL_SHADER_VALIDATION"] = "0"
+                env["MTL_SHADER_VALIDATION_ENABLED"] = "0"
                 env["MTL_DEBUG_LAYER"] = "0"
+                env["METAL_DEVICE_WRAPPER_TYPE"] = "0"
+                env["MTL_SHADER_VALIDATION_GLOBAL_MEMORY"] = "0"
+                env["MTL_SHADER_VALIDATION_THREADGROUP_MEMORY"] = "0"
+                env["MTL_SHADER_VALIDATION_TEXTURE_USAGE"] = "0"
 
                 process.environment = env
 
