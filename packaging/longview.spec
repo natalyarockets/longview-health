@@ -11,7 +11,7 @@ Build with:
 
 import sys
 from pathlib import Path
-from PyInstaller.utils.hooks import copy_metadata, collect_data_files
+from PyInstaller.utils.hooks import copy_metadata, collect_data_files, collect_submodules
 
 block_cipher = None
 
@@ -56,21 +56,15 @@ a = Analysis(
     [str(project_root / "src" / "longview_health" / "cli" / "main.py")],
     pathex=[str(project_root / "src")],
     binaries=[],
-    datas=_datas,
+    datas=_datas + collect_data_files("mlx", include_py_files=False),
     hiddenimports=[
-        # Docling dynamic imports
-        "docling.document_converter",
-        "docling.datamodel.base_models",
-        "docling.datamodel.document",
-        "docling_core.types.doc",
-        # MLX C extensions and submodules
-        "mlx",
-        "mlx.core",
-        "mlx.nn",
-        "mlx_lm",
-        "mlx_lm.utils",
-        "mlx_lm.models",
-        "mlx_lm.models.qwen2",
+        # Docling -- collect ALL submodules dynamically (plugins, models, etc.)
+        *collect_submodules("docling"),
+        *collect_submodules("docling_core"),
+        *collect_submodules("docling_parse"),
+        # MLX -- collect all submodules
+        *collect_submodules("mlx"),
+        *collect_submodules("mlx_lm"),
         # Transformers (used by mlx-lm for tokenizer)
         "transformers",
         "tokenizers",
