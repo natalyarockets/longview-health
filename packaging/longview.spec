@@ -11,17 +11,55 @@ Build with:
 
 import sys
 from pathlib import Path
+from PyInstaller.utils.hooks import copy_metadata, collect_data_files
 
 block_cipher = None
 
 # Project root (one level up from packaging/)
 project_root = Path(SPECPATH).parent
 
+# Collect package metadata that importlib.metadata needs at runtime.
+# Docling and its ecosystem use metadata for version checks and entry points.
+_metadata_packages = [
+    "docling",
+    "docling_core",
+    "docling_ibm_models",
+    "docling_parse",
+    "deepsearch_glm",
+    "pydantic",
+    "pydantic_core",
+    "huggingface_hub",
+    "transformers",
+    "tokenizers",
+    "mlx",
+    "mlx_lm",
+    "pdfplumber",
+    "reportlab",
+    "httpx",
+]
+
+_datas = []
+for pkg in _metadata_packages:
+    try:
+        _datas += copy_metadata(pkg)
+    except Exception:
+        pass  # Skip packages not installed
+
+# Collect docling data files (model configs, etc.)
+try:
+    _datas += collect_data_files("docling")
+except Exception:
+    pass
+try:
+    _datas += collect_data_files("docling_core")
+except Exception:
+    pass
+
 a = Analysis(
     [str(project_root / "src" / "longview_health" / "cli" / "main.py")],
     pathex=[str(project_root / "src")],
     binaries=[],
-    datas=[],
+    datas=_datas,
     hiddenimports=[
         # Docling dynamic imports
         "docling.document_converter",
