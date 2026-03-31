@@ -90,10 +90,13 @@ def load_model(model_name: str = DEFAULT_MLX_MODEL) -> None:
     if _model is not None and _loaded_model_name == model_name:
         return
 
+    import warnings
     from mlx_lm import load
 
     logger.info("Loading MLX model: %s", model_name)
-    _model, _tokenizer = load(model_name)
+    with warnings.catch_warnings():
+        warnings.filterwarnings("ignore", message=".*deprecated.*")
+        _model, _tokenizer = load(model_name)
     _loaded_model_name = model_name
     logger.info("MLX model loaded successfully")
 

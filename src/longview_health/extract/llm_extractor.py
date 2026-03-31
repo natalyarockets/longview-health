@@ -368,12 +368,17 @@ def extract(
         logger.error("LLM call failed (%s): %s", backend, e)
         raise
 
+    stripped_doc = raw_response.strip().upper() if raw_response else ""
+    if not stripped_doc or stripped_doc == "EMPTY":
+        logger.debug("LLM returned empty for document %s", parsed.document_id)
+        return []
+
     try:
         extraction = _parse_llm_response(raw_response)
     except (json.JSONDecodeError, Exception) as e:
-        logger.error(
-            "Failed to parse LLM response for document %s: %s\nRaw: %s",
-            parsed.document_id, e, raw_response[:500],
+        logger.debug(
+            "Could not parse LLM response for document %s: %s\nRaw: %s",
+            parsed.document_id, e, raw_response[:200],
         )
         return []
 
@@ -453,10 +458,17 @@ def extract_region(
         logger.error("LLM call failed for region (%s): %s", backend, e)
         return []
 
+    # Empty or trivial responses are normal for non-result regions
+    # (headers, footers, patient demographics, etc.)
+    stripped = raw_response.strip().upper() if raw_response else ""
+    if not stripped or stripped == "EMPTY" or stripped in ('{}', '{"results": []}', '{"RESULTS": []}'):
+        logger.debug("LLM returned empty for region (no extractable results)")
+        return []
+
     try:
         extraction = _parse_llm_response(raw_response)
     except (json.JSONDecodeError, Exception) as e:
-        logger.error("Failed to parse LLM response for region: %s\nRaw: %s", e, raw_response[:500])
+        logger.debug("Could not parse LLM response for region: %s\nRaw: %s", e, raw_response[:200])
         return []
 
     doc_date = _parse_date(extraction.document_date, fallback_date)
