@@ -74,7 +74,7 @@ def _parse_reference_range(ref: str) -> tuple[str | None, str | None]:
 
 def _detect_date(markdown: str) -> date | None:
     """Try to find a document/collection date in the markdown text."""
-    # Look for "Date/Time Collected" followed by a date
+    # Look for "Date/Time Collected" followed by a YYYY-MM-DD date
     m = re.search(r"(\d{4}-\d{2}-\d{2})\s+\d{2}:\d{2}:\d{2}", markdown)
     if m:
         try:
@@ -87,6 +87,14 @@ def _detect_date(markdown: str) -> date | None:
     if m:
         try:
             return date.fromisoformat(m.group(1))
+        except ValueError:
+            pass
+
+    # Look for MM/DD/YYYY or M/D/YYYY format (common in US lab reports)
+    m = re.search(r"(\d{1,2})/(\d{1,2})/(\d{4})", markdown)
+    if m:
+        try:
+            return date(int(m.group(3)), int(m.group(1)), int(m.group(2)))
         except ValueError:
             pass
 

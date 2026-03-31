@@ -129,6 +129,15 @@ struct ContentView: View {
 struct DocumentsListView: View {
     let database: VaultDatabase
     @State private var documents: [Document] = []
+    @State private var resultCounts: [String: Int] = [:]
+
+    private var totalResults: Int {
+        resultCounts.values.reduce(0, +)
+    }
+
+    private var docsWithResults: Int {
+        documents.filter { (resultCounts[$0.id] ?? 0) > 0 }.count
+    }
 
     var body: some View {
         Group {
@@ -140,12 +149,29 @@ struct DocumentsListView: View {
                 )
             } else {
                 ScrollView {
-                    LazyVStack(spacing: 8) {
+                    LazyVStack(alignment: .leading, spacing: 8) {
+                        // Coverage summary
+                        HStack(spacing: 16) {
+                            Label("\(documents.count) documents", systemImage: "doc.on.doc")
+                            Label("\(totalResults) results", systemImage: "list.bullet.clipboard")
+                            if docsWithResults < documents.count {
+                                Label(
+                                    "\(documents.count - docsWithResults) with no results",
+                                    systemImage: "exclamationmark.triangle"
+                                )
+                                .foregroundStyle(Theme.attention)
+                            }
+                        }
+                        .font(Theme.captionFont)
+                        .foregroundStyle(.secondary)
+                        .padding(.bottom, 4)
+
                         ForEach(documents) { doc in
+                            let count = resultCounts[doc.id] ?? 0
                             HStack(spacing: 12) {
-                                Image(systemName: "doc.fill")
+                                Image(systemName: count > 0 ? "doc.fill" : "doc.badge.ellipsis")
                                     .font(.title3)
-                                    .foregroundStyle(Theme.accent)
+                                    .foregroundStyle(count > 0 ? Theme.accent : Theme.attention)
                                     .frame(width: 28)
 
                                 VStack(alignment: .leading, spacing: 3) {
@@ -161,6 +187,9 @@ struct DocumentsListView: View {
                                                 .font(.caption)
                                                 .foregroundStyle(.secondary)
                                         }
+                                        Text("\(count) result\(count == 1 ? "" : "s")")
+                                            .font(.caption.weight(.medium))
+                                            .foregroundStyle(count > 0 ? Theme.positive : Theme.attention)
                                     }
                                 }
                                 Spacer()
@@ -185,6 +214,7 @@ struct DocumentsListView: View {
 
     private func loadDocuments() {
         documents = (try? database.fetchDocuments()) ?? []
+        resultCounts = (try? database.resultCountsByDocument()) ?? [:]
     }
 
     private func openDocument(_ doc: Document) {

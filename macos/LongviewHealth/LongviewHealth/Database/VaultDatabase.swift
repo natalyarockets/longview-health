@@ -28,6 +28,20 @@ final class VaultDatabase: Sendable {
         }
     }
 
+    /// Returns the number of results stored for each document ID.
+    func resultCountsByDocument() throws -> [String: Int] {
+        try dbPool.read { db in
+            let rows = try Row.fetchAll(db, sql: """
+                SELECT document_id, COUNT(*) as cnt FROM medical_results GROUP BY document_id
+                """)
+            var counts: [String: Int] = [:]
+            for row in rows {
+                counts[row["document_id"] as String] = row["cnt"] as Int
+            }
+            return counts
+        }
+    }
+
     func documentCount() throws -> Int {
         try dbPool.read { db in
             try Int.fetchOne(db, sql: "SELECT COUNT(*) FROM documents") ?? 0
