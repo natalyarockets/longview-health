@@ -45,15 +45,12 @@ for pkg in _metadata_packages:
     except Exception:
         pass  # Skip packages not installed
 
-# Collect docling data files (model configs, etc.)
-try:
-    _datas += collect_data_files("docling")
-except Exception:
-    pass
-try:
-    _datas += collect_data_files("docling_core")
-except Exception:
-    pass
+# Collect data files (model configs, pdf resources, etc.)
+for _pkg in ["docling", "docling_core", "docling_parse", "deepsearch_glm"]:
+    try:
+        _datas += collect_data_files(_pkg)
+    except Exception:
+        pass
 
 a = Analysis(
     [str(project_root / "src" / "longview_health" / "cli" / "main.py")],
